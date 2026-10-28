@@ -1,2 +1,5 @@
 node_modules/
 .env
+# Phone numbers: keep them out of git
+lists/
+logs/

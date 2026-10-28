@@ -1,11 +1,14 @@
 {
   "name": "voice-alerts",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Voice-call alerts to farmers through Twilio",
+  "main": "broadcast-calls.js",
   "scripts": {
     "start": "node make-call.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "call": "node broadcast-calls.js",
+    "report": "node call-report.js",
+    "demo": "node broadcast-calls.js lists/demo.txt --max-seconds 75 --say \"Hello. This is Yala-Maha Assist, the irrigation alert service for the Mahaweli B zone. Flood warning: Kudawewa tank is above 90 percent, and the spill gates will open at 6 AM tomorrow. Please move livestock and equipment away from the canal banks. Thank you.\"",
+    "test": "node --test"
   },
   "keywords": [],
   "author": "",
