@@ -6,7 +6,7 @@ Yala-Maha Assist is a comprehensive, modular web application designed for hydrol
 
 **Version:** 1.0  
 **Primary Focus:** Farmland management, water resource optimization, agricultural sustainability, disaster mitigation  
-**Technologies:** React, Vite, Node.js, Express.js, PostgreSQL, SVG, HTML5, CSS3, Text.lk SMS Gateway
+**Technologies:** React, Vite, Node.js, Express.js, PostgreSQL, SVG, HTML5, CSS3, Text.lk SMS Gateway, Twilio Voice  
 **Target Users:** Irrigation Officers, Agrarian Extension Officers, Registered Farmers, Government Agencies  
 
 ---
@@ -15,6 +15,7 @@ Yala-Maha Assist is a comprehensive, modular web application designed for hydrol
 - [Project Structure](#project-structure)
 - [Key Features](#key-features)
 - [SMS Gateway Integration (Text.lk)](#sms-gateway-integration-textlk)
+- [Voice Alerts (Twilio)](#voice-alerts-twilio)
 - [Technical Architecture](#technical-architecture)
 - [Setup & Installation](#setup--installation)
 - [API Endpoints](#api-endpoints)
@@ -56,6 +57,7 @@ yala-maha-assist/
 │   └── tank-dat.pdf                 # Tank data reference
 ├── adminportal/                     # Admin portal (React + Vite), see adminportal/README.md
 ├── reactfarmerportalmekawenaskrpn/  # Farmer portal (React + Vite)
+├── voice-alerts/                    # Twilio voice-call alerts, see voice-alerts/README.md
 ├── ml-model/                        # Tank forecast model & service (Port 5000)
 ├── package.json                     # Root dependencies for the ML service (npm run ml)
 └── README.md                        # Project documentation
@@ -78,6 +80,11 @@ yala-maha-assist/
 - **Registration Confirmations:** Automatically delivers confirmation SMS with assigned Farm ID upon registration.
 - **Broadcast Composer:** Trilingual templates, GSM/Unicode segment counter, and live recipient broadcasting.
 - **Dry-Run Safe Mode:** Easily toggle between simulated and live SMS dispatch via environment variables.
+
+### 📞 Voice Alerts (Twilio)
+- **Calls for unregistered people:** Phones a recorded or text-to-speech alert to a list of numbers that are not registered farmers.
+- **Safe by default:** Dry run first with the maximum cost; live runs need `--live` and a typed confirmation.
+- **Resumable & reported:** Every call is logged; `--resume` skips numbers already called, and `call-report.js` shows answered calls and actual spend.
 
 ### 👨‍🌾 Clean, Redesigned Farmer Portal
 - **Mobile-First Card Layout:** Clean, accessible card interface with trilingual switcher (**English / සිංහල / தமிழ்**).
@@ -121,6 +128,22 @@ yala-maha-assist/
 2. **Registration Confirmation:** `POST /api/sms/confirm-registration`
 3. **Threshold Flood Alerts:** `POST /api/alerts/check` (Dispatches alerts when tanks reach $\ge 90\%$ capacity)
 4. **Custom & Broadcast Messages:** `POST /api/sms/send-custom`
+
+---
+
+## Voice Alerts (Twilio)
+
+`voice-alerts/` phones a short voice alert to people who are not registered farmers (registered farmers get SMS). It runs from the command line and is not connected to the API or the admin portal.
+
+```bash
+cd voice-alerts
+npm install
+node broadcast-calls.js lists/kudawewa.csv --audio https://your-host/flood-si.mp3 --exclude-registered         # dry run
+node broadcast-calls.js lists/kudawewa.csv --audio https://your-host/flood-si.mp3 --exclude-registered --live  # real calls
+node call-report.js logs/calls-<time>.jsonl                                                                    # outcomes & cost
+```
+
+It needs Twilio credentials in `voice-alerts/.env`. Phone lists (`lists/`) and call logs (`logs/`) are git-ignored. Setup, trial-account demo, pacing and per-minute costs are in [voice-alerts/README.md](voice-alerts/README.md).
 
 ---
 
