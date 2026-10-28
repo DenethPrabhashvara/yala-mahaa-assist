@@ -2,3 +2,6 @@
 node_modules
 dist/
 *.log
+# ML model: the 188 MB original stays local; model/ holds the exported parts (export-model.py)
+ml-model/tank_model.pkl
+ml-model/.venv/

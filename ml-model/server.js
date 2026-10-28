@@ -2,39 +2,73 @@ const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
+const zlib = require("zlib");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 1. Load the exported model bundle on startup
-const MODEL_BUNDLE = JSON.parse(
-  fs.readFileSync(path.join(__dirname, "tank_model.json"), "utf-8")
-);
-const { features: FEATURES, horizon_days: HORIZON_DAYS, tanks: TANKS, baseline_prediction, trees } = MODEL_BUNDLE;
+// 1. Load the exported model (export-model.py) on startup: meta.json + gzipped tree parts
+const MODEL_DIR = path.join(__dirname, "model");
+const META = JSON.parse(fs.readFileSync(path.join(MODEL_DIR, "meta.json"), "utf-8"));
+const { features: FEATURES, horizon_days: HORIZON_DAYS, tanks: TANKS } = META;
 
-// 2. Pure JS inference for scikit-learn HistGradientBoostingRegressor
+function loadTrees(file) {
+  const buf = zlib.gunzipSync(fs.readFileSync(path.join(MODEL_DIR, file)));
+  const trees = [];
+  let off = 0;
+  const count = buf.readUInt32LE(off); off += 4;
+  // Copy each array out so typed arrays are aligned
+  const take = (Type, n) => {
+    const bytes = n * Type.BYTES_PER_ELEMENT;
+    const arr = new Type(buf.buffer.slice(buf.byteOffset + off, buf.byteOffset + off + bytes));
+    off += bytes;
+    return arr;
+  };
+  for (let t = 0; t < count; t++) {
+    const n = buf.readUInt32LE(off); off += 4;
+    trees.push({
+      left: take(Int32Array, n),
+      right: take(Int32Array, n),
+      feat: take(Int16Array, n),
+      missLeft: take(Uint8Array, n),
+      thresh: take(Float64Array, n),
+      value: take(Float64Array, n),
+    });
+  }
+  return trees;
+}
+
+const TREES = META.parts.flatMap(loadTrees);
+if (TREES.length !== META.n_trees) {
+  throw new Error(`Expected ${META.n_trees} trees, loaded ${TREES.length}`);
+}
+
+// 2. Pure JS inference for scikit-learn RandomForestRegressor: the mean of all trees
 function predictTreeEnsemble(featureVectorObject) {
-  // Ensure exact feature order expected by tank_model.pkl
-  const x = FEATURES.map((name) => featureVectorObject[name]);
-  let pred = baseline_prediction;
+  // Ensure exact feature order expected by tank_model.pkl.
+  // scikit-learn compares float32 inputs against the thresholds, so round the same way.
+  const x = FEATURES.map((name) => {
+    const v = featureVectorObject[name];
+    return v === null || v === undefined ? NaN : Math.fround(v);
+  });
+  let sum = 0;
 
-  for (const nodes of trees) {
+  for (const tree of TREES) {
     let idx = 0;
-    while (!nodes[idx].leaf) {
-      const node = nodes[idx];
-      const val = x[node.feat];
-      if (Number.isNaN(val) || val === null || val === undefined) {
-        idx = node.miss_left ? node.left : node.right;
-      } else if (val <= node.thresh) {
-        idx = node.left;
+    while (tree.left[idx] !== -1) {
+      const val = x[tree.feat[idx]];
+      if (Number.isNaN(val)) {
+        idx = tree.missLeft[idx] ? tree.left[idx] : tree.right[idx];
+      } else if (val <= tree.thresh[idx]) {
+        idx = tree.left[idx];
       } else {
-        idx = node.right;
+        idx = tree.right[idx];
       }
     }
-    pred += nodes[idx].val;
+    sum += tree.value[idx];
   }
-  return pred;
+  return sum / TREES.length;
 }
 
 // Helper: median of a numeric array
@@ -143,7 +177,7 @@ app.post("/api/forecast/predict", async (req, res) => {
       return res.status(400).json({ error: "Readings array is required." });
     }
 
-    const { lat, lon, fill_ref } = TANKS[tank];
+    const { lat, lon, fill_ref, is_major } = TANKS[tank];
     const dailySeries = buildDailyStorage(readings);
 
     if (dailySeries.length < 15) {
@@ -197,6 +231,7 @@ app.post("/api/forecast/predict", async (req, res) => {
       cap_ref: fill_ref,
       lat,
       lon,
+      is_major,
     };
 
     const rawDelta = predictTreeEnsemble(featureRow);
