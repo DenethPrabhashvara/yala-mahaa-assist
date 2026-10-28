@@ -51,6 +51,8 @@ const limiter = rateLimit({
 
 const app = express()
 
+app.set('trust proxy', 1) // behind Caddy: req.ip is the client's IP from X-Forwarded-For
+
 // Global Middleware
 app.use(helmet())
 app.use(cookieparser())

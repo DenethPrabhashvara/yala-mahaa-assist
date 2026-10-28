@@ -33,6 +33,9 @@ if (process.env.NODE_ENV !== "production") {
       ),
     }),
   );
+} else {
+  // In Docker the log files stay inside the container; the console is what `docker compose logs` shows
+  logger.add(new winston.transports.Console());
 }
 
 module.exports =logger

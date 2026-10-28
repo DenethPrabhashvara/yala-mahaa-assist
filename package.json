@@ -1,7 +1,7 @@
 {
   "name": "yala-maha",
   "version": "1.0.0",
-  "description": "Yala-Maha · shared root package (runs the ML forecast service). The admin portal is in adminportal/, the farmer portal in reactfarmerportalmekawenaskrpn/.",
+  "description": "Yala-Maha · shared root package (runs the ML forecast service). The admin portal is in adminportal/, the farmer portal in farmerportal/.",
   "scripts": {
     "ml": "node ml-model/server.js"
   },

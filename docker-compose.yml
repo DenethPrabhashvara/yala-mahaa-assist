@@ -1,0 +1,77 @@
+services:
+  db:
+    image: postgres:18-alpine          # same major version as your PC (18)
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql     # Postgres 18 images mount here, not .../data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+
+  ml:
+    build: { context: ., dockerfile: ml-model/Dockerfile }
+    restart: unless-stopped
+
+  api:
+    build: { context: ., dockerfile: api/Dockerfile }
+    restart: unless-stopped
+    env_file: api/config.env
+    environment:                       # overrides config.env so it points at the containers
+      NODE_ENV: production
+      APIDBHOST: db
+      APIDBPORT: "5432"
+      APIDATABASE: ${DB_NAME}
+      APIDBUSERN: ${DB_USER}
+      APIDBPASSWORD: ${DB_PASSWORD}
+      REDIS_URL: redis://redis:6379
+      FORECAST_API_URL: http://ml:5000
+    volumes:
+      - apilogs:/app/logs
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_started }
+      ml: { condition: service_started }
+
+  web:
+    build:
+      context: .
+      dockerfile: deploy/web/Dockerfile
+      args:
+        VITE_GOOGLE_MAPS_API_KEY: ${VITE_GOOGLE_MAPS_API_KEY:-}
+        VITE_GOOGLE_MAPS_MAP_ID: ${VITE_GOOGLE_MAPS_MAP_ID:-}
+    restart: unless-stopped
+    environment:
+      FARMER_DOMAIN: ${FARMER_DOMAIN}
+      ADMIN_DOMAIN: ${ADMIN_DOMAIN}
+    ports: ["${HTTP_PORT:-80}:80", "443:443", "443:443/udp"]
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [api]
+
+  jobs:                                # not started by `up`; cron runs it
+    build: { context: ., dockerfile: Tank-Reserviour/Dockerfile }
+    profiles: [jobs]
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      db: { condition: service_healthy }
+
+volumes:
+  pgdata:
+  apilogs:
+  caddy_data:
+  caddy_config:

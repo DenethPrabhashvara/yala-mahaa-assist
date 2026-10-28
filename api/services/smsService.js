@@ -86,7 +86,8 @@ async function sendSms(recipients, message, options = {}) {
 
   const data = await response.json()
 
-  if (!response.ok) {
+  // Text.lk reports some failures (unauthorized sender ID, no credit) as HTTP 200 with status "error"
+  if (!response.ok || data.status === 'error') {
        throw new Error(`Message API error (${response.status}): ${JSON.stringify(data)}`)
   }
 

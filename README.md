@@ -56,7 +56,7 @@ yala-maha/
 │   ├── daily_download_pdfs.py       # Automated PDF downloader
 │   └── tank-dat.pdf                 # Tank data reference
 ├── adminportal/                     # Admin portal (React + Vite), see adminportal/README.md
-├── reactfarmerportalmekawenaskrpn/  # Farmer portal (React + Vite)
+├── farmerportal/                    # Farmer portal (React + Vite), see farmerportal/README.md
 ├── voice-alerts/                    # Twilio voice-call alerts, see voice-alerts/README.md
 ├── ml-model/                        # Tank forecast model & service (Port 5000)
 ├── package.json                     # Root dependencies for the ML service (npm run ml)
@@ -225,13 +225,13 @@ npm run dev
 ```
 The admin portal (React 19, Vite, Recharts) has the Dashboard, Tanks & Reservoirs, Rivers, SMS, Farmers, Database and Settings pages, all reading the API's `/admin` routes. Its dev server proxies `/admin` to the API on port 8005, so start the API first, and create the first account with `node scripts/create-admin.js` (in `API/`). See `adminportal/README.md`.
 
-#### Start the farmer portal (`reactfarmerportalmekawenaskrpn/`):
+#### Start the farmer portal (`farmerportal/`):
 ```bash
-cd reactfarmerportalmekawenaskrpn
+cd farmerportal
 npm install
 npm run dev
 ```
-See `reactfarmerportalmekawenaskrpn/README.md`.
+See `farmerportal/README.md`.
 
 #### Start the ML forecast service (Port 5000):
 ```bash

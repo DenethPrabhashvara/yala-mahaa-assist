@@ -1,0 +1,22 @@
+{$FARMER_DOMAIN} {
+	encode zstd gzip
+	handle /api/* {
+		reverse_proxy api:8005
+	}
+	handle {
+		root * /srv/farmer
+		file_server
+	}
+}
+
+{$ADMIN_DOMAIN} {
+	encode zstd gzip
+	handle /admin/* {
+		reverse_proxy api:8005
+	}
+	handle {
+		root * /srv/admin
+		try_files {path} /index.html
+		file_server
+	}
+}

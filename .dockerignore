@@ -1,0 +1,12 @@
+.git
+**/node_modules
+**/.venv
+**/dist
+**/logs
+**/.env
+**/*.env
+*.dump
+voice-alerts
+ml-model/tank_model.pkl
+farmerportal/android
+farmerportal/ios
