@@ -3,3 +3,5 @@ node_modules/
 # Phone numbers: keep them out of git
 lists/
 logs/
+# Generated Sinhala audio (sinhala-tts.js)
+audio/

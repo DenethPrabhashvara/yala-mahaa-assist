@@ -105,7 +105,7 @@ async function sendRegistrationConfirmation(phone, { farmerName, acres }, option
   const normalized = phoneCheck.normalized
   const name = farmerName || 'Farmer'
   const totalAcres = acres ? `${acres} ac` : 'registered area'
-  const message = `YalaMahaAssist: Welcome ${name}! Farm of land (${totalAcres}) acres is registered for irrigation schedules & flood alerts.`
+  const message = `YalaMaha: Welcome ${name}! Farm of land (${totalAcres}) acres is registered for irrigation schedules & flood alerts.`
 
   return await sendSms(normalized, message, options)
 }

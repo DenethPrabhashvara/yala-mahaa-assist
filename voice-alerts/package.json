@@ -7,7 +7,8 @@
     "start": "node make-call.js",
     "call": "node broadcast-calls.js",
     "report": "node call-report.js",
-    "demo": "node broadcast-calls.js lists/demo.txt --max-seconds 75 --say \"Hello. This is Yala-Maha Assist, the irrigation alert service for the Mahaweli B zone. Flood warning: Kudawewa tank is above 90 percent, and the spill gates will open at 6 AM tomorrow. Please move livestock and equipment away from the canal banks. Thank you.\"",
+    "sinhala": "node sinhala-tts.js",
+    "demo": "node broadcast-calls.js lists/demo.txt --max-seconds 75 --say \"Hello. This is Yala-Maha, the irrigation alert service for the Mahaweli B zone. Flood warning: Kudawewa tank is above 90 percent, and the spill gates will open at 6 AM tomorrow. Please move livestock and equipment away from the canal banks. Thank you.\"",
     "test": "node --test"
   },
   "keywords": [],

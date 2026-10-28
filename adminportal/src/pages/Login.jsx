@@ -30,11 +30,11 @@ export function Login() {
 
   return (
     <main className="login-page">
-      <section className="login-card" aria-label="Sign in to Yala Maha Assist">
+      <section className="login-card" aria-label="Sign in to Yala Maha">
         <div className="login-intro">
-          <a className="login-brand" href="/" aria-label="Yala Maha Assist home">
+          <a className="login-brand" href="/" aria-label="Yala Maha home">
             <span className="login-brand-mark"><Droplets size={21} /></span>
-            <span>Yala Maha <strong>Assist</strong></span>
+            <span>Yala <strong>Maha</strong></span>
           </a>
 
           <div className="login-intro-copy">
@@ -124,7 +124,7 @@ export function Login() {
           </p>
         </div>
       </section>
-      <footer className="login-footer">Yala Maha Assist <span>·</span> Watering a better future</footer>
+      <footer className="login-footer">Yala Maha <span>·</span> Watering a better future</footer>
     </main>
   )
 }

@@ -99,12 +99,12 @@ export function Topbar({ onOpenSearch, onOpenMobile }) {
         <IconButton label="Open navigation" className="mobile-menu" onClick={onOpenMobile}>
           <Menu size={20} />
         </IconButton>
-        <NavLink to="/" className="topbar-brand" aria-label="Yala Maha Assist home">
+        <NavLink to="/" className="topbar-brand" aria-label="Yala Maha home">
           <span className="brand-mark">
             <Droplets size={18} strokeWidth={2.2} />
           </span>
           <span className="brand-copy">
-            <strong>Yala Maha Assist</strong>
+            <strong>Yala Maha</strong>
             <small></small>
           </span>
         </NavLink>

@@ -1,6 +1,6 @@
 # YalaMaha — National Water Command Center
 
-The admin portal for Yala Maha Assist, built with React 19, Vite 8 and Recharts. It shows reservoir storage, river gauges, farmers and the water issue schedule from the API database, sends SMS to farmers, and lets admins browse and edit every table.
+The admin portal for Yala Maha, built with React 19, Vite 8 and Recharts. It shows reservoir storage, river gauges, farmers and the water issue schedule from the API database, sends SMS to farmers, and lets admins browse and edit every table.
 
 Everything comes from the API's `/admin` routes (see `API/routes/ADMIN/`). Admins sign in with a username and password; the access token is kept in memory and a refresh cookie keeps the session across reloads.
 

@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Yala-Maha Assist</string>
-    <string name="title_activity_main">Yala-Maha Assist</string>
+    <string name="app_name">Yala-Maha</string>
+    <string name="title_activity_main">Yala-Maha</string>
     <string name="package_name">lk.yalamaha.farmer</string>
     <string name="custom_url_scheme">lk.yalamaha.farmer</string>
 </resources>

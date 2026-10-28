@@ -1,4 +1,4 @@
-# Yala-Maha Assist — Voice Alerts
+# Yala-Maha — Voice Alerts
 
 Phones a short voice alert to a list of numbers through Twilio. It is for people who are not registered farmers (registered farmers get SMS from the admin panel). It runs from the command line and is not connected to the admin panel or the API.
 
@@ -55,9 +55,31 @@ node broadcast-calls.js lists/kudawewa.csv --audio https://your-host/flood-si.mp
 
 ### The message
 
-- **`--audio <https URL>`** plays a recording. Use this for Sinhala and Tamil: Twilio's text-to-speech cannot speak Sinhala. The file must be at a public `https://` URL. Twilio Assets (Console → Functions and Assets) works, as does any public file host.
-- **`--say "<text>"`** reads text out, with `--lang` (default `en-US`).
+- **`--say-si "<Sinhala text>"`** speaks Sinhala text with Dialog's SinhalaVITS (see below). Pick the voice with `--voice female1` (default), `female2`, `male1` or `male2`.
+- **`--audio <https URL>`** plays a recording, for example a Tamil one. The file must be at a public `https://` URL. Twilio Assets (Console → Functions and Assets) works, as does any public file host.
+- **`--say "<text>"`** reads text out with Twilio's voice, with `--lang` (default `en-US`). Twilio cannot speak Sinhala.
 - **`--repeat 2`** plays it twice in the same call. This helps people who pick up late, but it doubles the talk time.
+
+### Sinhala text to speech
+
+`--say-si` uses [SinhalaVITS](https://huggingface.co/dialoglk), Dialog's open Sinhala text-to-speech (MPL-2.0), through its free public demo, so nothing has to be installed.
+
+```bash
+# Make the audio and listen to it (saved in audio/, which git ignores)
+npm run sinhala -- "කුඩාවැව ජලාශය සියයට අනූවට වඩා පිරී ඇත." --voice female1
+
+# Dry run: makes the same audio and shows its exact length. Nothing is uploaded or called.
+node broadcast-calls.js lists/kudawewa.csv --say-si "කුඩාවැව ජලාශය සියයට අනූවට වඩා පිරී ඇත." --exclude-registered
+
+# Live: uploads the audio to Twilio Assets, then calls
+node broadcast-calls.js lists/kudawewa.csv --say-si "කුඩාවැව ජලාශය සියයට අනූවට වඩා පිරී ඇත." --exclude-registered --live
+```
+
+- **The first request can take a minute:** the demo sleeps when nobody uses it. The audio is saved per text and voice, so the dry run's file is exactly what the live run uploads and plays.
+- **Write numbers as words** (සියයට අනූව, not 90%) and listen before going live. Each voice was trained on about 100 minutes of speech, so check names and numbers come out clearly.
+- **`--live` uploads the audio to Twilio Assets**, in a Serverless service called `yala-maha-voice-alerts` that it creates the first time. Each upload replaces the previous one, so an older alert's URL stops working.
+- **If the demo is down**, the run stops before calling anyone. Make the audio later, or record the alert and use `--audio`.
+- Tamil is not covered: SinhalaVITS speaks Sinhala only.
 
 ### Who gets called
 
@@ -103,6 +125,8 @@ Calls hang up after 60 seconds by default (`--max-seconds`), so no answered call
 broadcast-calls.js   build the call list, estimate cost, place calls, write the log
 call-report.js       actual outcomes and spend for a log, from Twilio
 phones.js            Sri Lankan number parsing, list reading, call rates
+sinhala-tts.js       Sinhala text to WAV with SinhalaVITS (also a command: npm run sinhala)
+twilio-assets.js     upload an audio file to Twilio Assets for --say-si
 make-call.js         single hard-coded test call
-test/                node:test tests for phones.js (npm test)
+test/                node:test tests for phones.js and sinhala-tts.js (npm test)
 ```

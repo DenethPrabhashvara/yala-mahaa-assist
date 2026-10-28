@@ -89,7 +89,7 @@ app.use(limiter)
 app.get('/', (req, res) => {
     res.status(200).json({
         status: 'success',
-        message: 'Yala-Maha Assist API Server',
+        message: 'Yala-Maha API Server',
         endpoints: {
             mahaweli: '/api/data/mahaweli',
             mahaweliJson: '/api/data/mahaweli?format=csv', 

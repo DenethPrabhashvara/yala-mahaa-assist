@@ -6,6 +6,8 @@ const readline = require("node:readline/promises");
 const { parseArgs } = require("node:util");
 const twilio = require("twilio");
 const { RATE_PER_MINUTE, normalizePhone, readNumberList } = require("./phones.js");
+const { VOICES, audioFileFor, sinhalaAudioFile } = require("./sinhala-tts.js");
+const { publishAudio } = require("./twilio-assets.js");
 
 try {
   process.loadEnvFile(path.join(__dirname, ".env"));
@@ -15,12 +17,15 @@ try {
 
 const USAGE = `
 Usage:
-  node broadcast-calls.js <NUMBERS FILE> (--audio <URL> | --say "<TEXT>") [options]
+  node broadcast-calls.js <NUMBERS FILE> (--audio <URL> | --say "<TEXT>" | --say-si "<TEXT>") [options]
 
 Message (pick one):
-  --audio <https URL>       Recorded MP3/WAV to play. Use this for Sinhala and Tamil.
-  --say "<text>"            Text read out by Twilio's voice
+  --audio <https URL>       Recorded MP3/WAV to play, e.g. for Tamil
+  --say "<text>"            Text read out by Twilio's voice (not Sinhala)
   --lang <code>             Voice language for --say (default en-US)
+  --say-si "<text>"         Sinhala text, spoken by Dialog's SinhalaVITS. The dry run saves the
+                            audio in audio/ to listen to; --live uploads it to Twilio Assets.
+  --voice <name>            Voice for --say-si: female1 (default), female2, male1, male2
   --repeat <n>              Play the message n times in one call (default 1)
 
 Who to call:
@@ -36,8 +41,9 @@ Cost and pacing:
   --live                    Actually place the calls (otherwise dry run)
   --yes                     Skip the "type yes" confirmation
 
-Example:
+Examples:
   node broadcast-calls.js lists/kudawewa.csv --audio https://example.com/flood-si.mp3 --exclude-registered
+  node broadcast-calls.js lists/kudawewa.csv --say-si "කුඩාවැව ජලාශය පිරී ඇත." --exclude-registered
 `;
 
 const BAD_CREDENTIALS = "Twilio rejected the credentials. Check TWILIO_ACCOUNT_SID, TWILIO_API_KEY and TWILIO_API_SECRET in .env.";
@@ -111,6 +117,8 @@ async function main() {
       audio: { type: "string" },
       say: { type: "string" },
       lang: { type: "string", default: "en-US" },
+      "say-si": { type: "string" },
+      voice: { type: "string", default: "female1" },
       repeat: { type: "string", default: "1" },
       "exclude-registered": { type: "boolean", default: false },
       resume: { type: "string" },
@@ -130,9 +138,12 @@ async function main() {
   }
   const listFile = positionals[0];
   if (!fs.existsSync(listFile)) fail(`Numbers file not found: ${listFile}`);
-  if (!opts.audio === !opts.say) fail("Give either --audio <URL> or --say \"<text>\" (one of them).");
+  const messages = [opts.audio, opts.say, opts["say-si"]].filter(value => value !== undefined);
+  if (messages.length !== 1) fail("Give one message: --audio <URL>, --say \"<text>\" or --say-si \"<Sinhala text>\".");
   if (opts.audio && !/^https:\/\//.test(opts.audio)) fail("--audio must be a public https:// URL so Twilio can fetch it.");
-  if (opts.say && !opts.say.trim()) fail("--say text is empty.");
+  if (opts.say !== undefined && !opts.say.trim()) fail("--say text is empty.");
+  if (opts["say-si"] !== undefined && !opts["say-si"].trim()) fail("--say-si text is empty.");
+  if (!VOICES[opts.voice]) fail(`--voice must be one of: ${Object.keys(VOICES).join(", ")}.`);
   if (opts.resume && !fs.existsSync(opts.resume)) fail(`Log to resume not found: ${opts.resume}`);
 
   const repeat = positiveInt(opts.repeat, "repeat");
@@ -140,7 +151,7 @@ async function main() {
   const ringSeconds = positiveInt(opts["ring-seconds"], "ring-seconds");
   const callsPerSecond = Number(opts["calls-per-second"]);
   if (!(callsPerSecond > 0)) fail("--calls-per-second must be more than 0.");
-  const twiml = buildTwiml({ audio: opts.audio, say: opts.say?.trim(), lang: opts.lang, repeat });
+  const message = { audio: opts.audio, say: opts.say?.trim(), lang: opts.lang, repeat };
 
   // Build the call queue
   const list = readNumberList(listFile);
@@ -190,19 +201,33 @@ async function main() {
   console.log(`Unanswered and busy calls are free. Expect less than this.`);
   console.log(`At ${callsPerSecond} call/s this takes about ${Math.ceil(queue.length / callsPerSecond / 60)} min to place.`);
 
-  if (opts.say) {
+  if (!queue.length) {
+    console.log("\nNobody to call.");
+    return;
+  }
+
+  let speech = null;
+  if (opts["say-si"]) {
+    const text = opts["say-si"].trim();
+    if (!fs.existsSync(audioFileFor(text, opts.voice))) {
+      console.log(`\nMaking the Sinhala audio with SinhalaVITS (${VOICES[opts.voice]})… the first request can take a minute.`);
+    }
+    try {
+      speech = await sinhalaAudioFile(text, opts.voice);
+    } catch (err) {
+      fail(err.message);
+    }
+    console.log(`Sinhala audio:       ${path.relative(process.cwd(), speech.file)} (${speech.seconds.toFixed(1)}s). Listen to it before going live.`);
+    const seconds = Math.ceil(speech.seconds * repeat);
+    if (seconds > maxSeconds) console.log(`⚠️  The message lasts ${seconds}s, so it will be cut off. Shorten it or raise --max-seconds.`);
+  } else if (opts.say) {
     // About 150 spoken words a minute
     const seconds = Math.ceil((opts.say.trim().split(/\s+/).length / 2.5) * repeat);
     if (seconds > maxSeconds) console.log(`⚠️  The message takes about ${seconds}s to read out, so it will be cut off. Shorten it or raise --max-seconds.`);
   } else {
     console.log(`Make sure the recording (×${repeat}) is shorter than ${maxSeconds}s, or it will be cut off.`);
   }
-  console.log(`\nTwiML: ${twiml}`);
-
-  if (!queue.length) {
-    console.log("\nNobody to call.");
-    return;
-  }
+  console.log(`\nTwiML: ${buildTwiml(speech ? { ...message, audio: "<Twilio Assets URL, uploaded with --live>" } : message)}`);
   if (!opts.live) {
     console.log("\n🧪 Dry run: no calls placed. Add --live to call these numbers.");
     return;
@@ -224,6 +249,16 @@ async function main() {
   }
 
   const client = twilio(TWILIO_API_KEY, TWILIO_API_SECRET, { accountSid: TWILIO_ACCOUNT_SID });
+  if (speech) {
+    console.log("\nUploading the Sinhala audio to Twilio Assets…");
+    try {
+      message.audio = await publishAudio(client, speech.file, { apiKey: TWILIO_API_KEY, apiSecret: TWILIO_API_SECRET });
+    } catch (err) {
+      fail(`${err.status === 401 ? BAD_CREDENTIALS : err.message} Nobody was called.`);
+    }
+    console.log(`Audio URL:           ${message.audio}`);
+  }
+  const twiml = buildTwiml(message);
   const logFile = opts.resume || newLogFile();
   const log = entry => fs.appendFileSync(logFile, JSON.stringify(entry) + "\n");
   const gapMs = 1000 / callsPerSecond;

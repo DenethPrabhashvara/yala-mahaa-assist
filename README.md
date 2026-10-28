@@ -1,8 +1,8 @@
-# Yala-Maha Assist
+# Yala-Maha
 **Advanced Hydrological Monitoring, Farmer Portal & Agricultural Early Warning System for Mahaweli B Zone, Sri Lanka**
 
 ## Overview
-Yala-Maha Assist is a comprehensive, modular web application designed for hydrological monitoring, farmer registration, and agricultural early warning systems in Sri Lanka's Mahaweli B Zone (Palugaswewa / Kudawewa system). The platform integrates real-time river monitoring, schematic GIS farm coverage mapping, multilingual Text.lk SMS dispatch, and a modern, mobile-responsive farmer self-service portal.
+Yala-Maha is a comprehensive, modular web application designed for hydrological monitoring, farmer registration, and agricultural early warning systems in Sri Lanka's Mahaweli B Zone (Palugaswewa / Kudawewa system). The platform integrates real-time river monitoring, schematic GIS farm coverage mapping, multilingual Text.lk SMS dispatch, and a modern, mobile-responsive farmer self-service portal.
 
 **Version:** 1.0  
 **Primary Focus:** Farmland management, water resource optimization, agricultural sustainability, disaster mitigation  
@@ -29,7 +29,7 @@ Yala-Maha Assist is a comprehensive, modular web application designed for hydrol
 
 ## Project Structure
 ```
-yala-maha-assist/
+yala-maha/
 ├── api/                             # REST API server & SMS services (Port 8005)
 │   ├── app.js                       # Express app configuration & middleware
 │   ├── server.js                    # API server startup & dotenv loader
@@ -170,8 +170,8 @@ It needs Twilio credentials in `voice-alerts/.env`. Phone lists (`lists/`) and c
 
 ### 1. Clone & Install
 ```bash
-git clone https://github.com/your-org/yala-maha-assist.git
-cd yala-maha-assist
+git clone https://github.com/your-org/yala-maha.git
+cd yala-maha
 
 # Install main web server dependencies
 npm install
@@ -425,7 +425,7 @@ node test-sms.js 0774817583
 node test-sms.js 0774817583 --live
 
 # 3. Custom message test:
-node test-sms.js 0774817583 "Hello from Yala-Maha Assist" --live
+node test-sms.js 0774817583 "Hello from Yala-Maha" --live
 ```
 
 ### Testing API Endpoints via PowerShell
@@ -475,7 +475,7 @@ Invoke-RestMethod -Method Post http://localhost:8005/api/sms/send-otp -ContentTy
 - **Text.lk:** For Sri Lankan mobile SMS gateway infrastructure.
 
 ---
-*Yala-Maha Assist · Empowering Sri Lankan Agriculture Through Technology*
+*Yala-Maha · Empowering Sri Lankan Agriculture Through Technology*
 
 #### important
 for to train ml model on google colab notebook i put  the current github pages appi endpoint url for it when hosting it on another platform please mention it again

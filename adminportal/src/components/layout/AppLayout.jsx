@@ -88,7 +88,7 @@ export function AppLayout() {
               <span className="footer-mark">
                 <Droplets size={13} />
               </span>
-              Yala Maha Assist
+              Yala Maha
             </span>
             <span className="app-footer-meta">
               <RefreshCw size={13} />

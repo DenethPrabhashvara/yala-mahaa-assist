@@ -40,7 +40,7 @@ authrouter.post('/send-otp', async (req, res, next) => {
     const otp = crypto.randomInt(0, 1_000_000).toString().padStart(6, '0')
     await sendSms(
       phoneCheck.normalized,
-      `Yala-Maha Assist verification code: ${otp}.expires in 3 minutes.`
+      `Yala-Maha verification code: ${otp}.expires in 3 minutes.`
     )
     await redisClient.set(`otp:${phoneCheck.normalized}`, otp, 'EX', OTP_TTL_SECONDS)
 
