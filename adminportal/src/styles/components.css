@@ -1257,6 +1257,29 @@
   color: var(--muted);
 }
 
+.forecast-stats { margin-bottom: 9px; }
+.forecast-chart { height: 230px; padding: 8px 4px 2px; }
+
+.forecast-legend {
+  display: flex;
+  gap: 14px;
+  margin-top: 6px;
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+.forecast-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.forecast-key { width: 16px; border-top: 2.4px solid #2563eb; }
+.forecast-key.predicted { border-top-style: dashed; border-top-color: #7c3aed; }
+.forecast-legend .forecast-gap { margin-left: auto; }
+
+.forecast-problem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .detail-meta-list {
   display: flex;
   flex-direction: column;

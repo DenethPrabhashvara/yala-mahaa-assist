@@ -2,6 +2,7 @@
 //
 //   GET  /admin/data/reservoirs                  every reservoir, its latest reading and 30 days of history
 //   POST /admin/data/reservoirs/:id/readings     log a field reading (admin, super_admin)
+//   GET  /admin/data/reservoirs/:id/forecast     14-day ML forecast, same as the farmer portal's
 //   GET  /admin/data/rivers                      river gauges: latest reading and the last 24 hours
 //   GET  /admin/data/schedule                    the Mahaweli water issue schedule
 //   GET  /admin/data/farmer-stats                farmer counts by district, month, crop and water source
@@ -9,6 +10,7 @@ const express = require('express')
 const db = require('../../config/db.js')
 const { canEdit } = require('../../middleware/requireAdmin.js')
 const { sendDbError } = require('./dbErrors.js')
+const forecast = require('../../models/forecastModel.js')
 
 const datarouter = express.Router()
 
@@ -76,6 +78,8 @@ const toNumber = (value) => (value === '' || value === null || value === undefin
 
 // Body: { usable_storage_percent, water_depth_ft, rainfall_prev_day_mm?, reading_date? (YYYY-MM-DD, default today) }
 // A reading for a day that already has one replaces it.
+datarouter.get('/reservoirs/:id/forecast', forecast.getForecastByReservoirId)
+
 datarouter.post('/reservoirs/:id/readings', canEdit, async (req, res, next) => {
   try {
     const body = req.body || {}

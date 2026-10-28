@@ -7,6 +7,7 @@ import {
   ArrowRight,
   ArrowUp,
   ArrowUpDown,
+  CalendarClock,
   ChevronRight,
   ClipboardPlus,
   Download,
@@ -37,6 +38,7 @@ import { Progress } from '../components/ui/Progress'
 import { Gauge as GaugeChart } from '../components/ui/Gauge'
 import { Sparkline } from '../components/ui/Sparkline'
 import { Drawer, Modal } from '../components/ui/Overlay'
+import { FORECAST_THRESHOLDS, ReservoirForecastChart } from '../components/charts'
 import { formatDate } from '../utils/format'
 
 const PAGE_SIZE = 9
@@ -295,6 +297,108 @@ function TankMap({ tanks: allTanks, atRisk, selected, onSelect, onHoverChange })
           ))}
         </div>
       </div>
+    </div>
+  )
+}
+
+// Same risk labels as the farmer portal's forecast
+function forecastRisk(next) {
+  if (next >= 95) return { tone: 'critical', label: 'May reach spill level' }
+  if (next <= FORECAST_THRESHOLDS.low) return { tone: 'warning', label: 'May fall low' }
+  return { tone: 'success', label: 'Stable' }
+}
+
+// Why a forecast is missing, in words an officer can act on
+function forecastProblem(error) {
+  if (error.status === 502 || error.status === 503) return 'The forecast service is not running. Start it with npm run ml.'
+  if (/at least|no stored water-level readings/i.test(error.message)) {
+    return 'Not enough readings yet. The model needs at least 15 days of readings from the last 90.'
+  }
+  if (/not found in model/i.test(error.message)) return 'No forecast model for this reservoir yet.'
+  return error.message
+}
+
+function ReservoirForecast({ reservoir }) {
+  const [state, setState] = useState({ loading: true, data: null, error: null })
+  const [attempt, setAttempt] = useState(0)
+
+  useEffect(() => {
+    let live = true
+    setState({ loading: true, data: null, error: null })
+    api(`/admin/data/reservoirs/${reservoir.dbId}/forecast`)
+      .then((response) => live && setState({ loading: false, data: response.data, error: null }))
+      .catch((error) => live && setState({ loading: false, data: null, error }))
+    return () => {
+      live = false
+    }
+  }, [reservoir.dbId, attempt])
+
+  const { loading, data, error } = state
+  const now = data ? data.fill_now * 100 : null
+  const next = data ? data.predicted_fill_in_14d * 100 : null
+  const change = data ? next - now : null
+  const risk = data ? forecastRisk(next) : null
+  const missingDays = data ? data.history.filter((point) => point.fill_pct === null).length : 0
+
+  return (
+    <div className="detail-section">
+      <div className="detail-section-head">
+        <div>
+          <strong>14-day forecast</strong>
+          <span>Model prediction · % of full effective storage</span>
+        </div>
+        {risk && <Badge tone={risk.tone} dot>{risk.label}</Badge>}
+      </div>
+
+      {loading && <p className="muted-cell">Calculating the forecast…</p>}
+
+      {error && (
+        <div className="forecast-problem">
+          <p className="muted-cell">{forecastProblem(error)}</p>
+          <Button size="sm" icon={RefreshCw} onClick={() => setAttempt((count) => count + 1)}>
+            Try again
+          </Button>
+        </div>
+      )}
+
+      {data && (
+        <>
+          <div className="detail-stat-grid forecast-stats">
+            <div className="detail-stat">
+              <span className="detail-stat-icon"><Gauge size={15} /></span>
+              <span>Now</span>
+              <strong>{now.toFixed(1)}%</strong>
+              <small>{formatNumber(data.storage_now_acft)} AF · {formatDate(data.from_date, { year: undefined })}</small>
+            </div>
+            <div className="detail-stat">
+              <span className="detail-stat-icon"><CalendarClock size={15} /></span>
+              <span>In {data.horizon_days} days</span>
+              <strong>{next.toFixed(1)}%</strong>
+              <small>{formatNumber(data.predicted_storage_in_14d_acft)} AF · {formatDate(data.target_date, { year: undefined })}</small>
+            </div>
+            <div className="detail-stat">
+              <span className="detail-stat-icon">{change >= 0 ? <ArrowUp size={15} /> : <ArrowDown size={15} />}</span>
+              <span>Change</span>
+              <strong>{change >= 0 ? '+' : '−'}{Math.abs(change).toFixed(1)} pts</strong>
+              <small>{data.outlook === 'steady' ? 'Steady' : data.outlook === 'rising' ? 'Rising' : 'Falling'}</small>
+            </div>
+            <div className="detail-stat">
+              <span className="detail-stat-icon"><Droplets size={15} /></span>
+              <span>Rain · last 7 days</span>
+              <strong>{data.rain_last_7d_mm} mm</strong>
+              <small>Open-Meteo, at the reservoir</small>
+            </div>
+          </div>
+          <div className="detail-chart forecast-chart">
+            <ReservoirForecastChart forecast={data} />
+          </div>
+          <div className="forecast-legend">
+            <span><i className="forecast-key observed" />Observed</span>
+            <span><i className="forecast-key predicted" />Predicted</span>
+            {missingDays > 0 && <span className="forecast-gap">{missingDays} days without readings</span>}
+          </div>
+        </>
+      )}
     </div>
   )
 }
@@ -918,6 +1022,8 @@ export function Tanks() {
                 <p className="muted-cell">Not enough readings in the last 30 days to draw a trend.</p>
               )}
             </div>
+
+            <ReservoirForecast key={selected.dbId} reservoir={selected} />
 
             <div className="detail-section">
               <div className="detail-section-head">

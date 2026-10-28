@@ -10,13 +10,14 @@ import {
   LineChart,
   Pie,
   PieChart,
+  ReferenceDot,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts'
-import { formatNumber } from '../../utils/format'
+import { formatDate, formatNumber } from '../../utils/format'
 
 export const CHART_COLORS = {
   primary: '#2563eb',
@@ -379,6 +380,149 @@ export function FlowSparkChart({ data, color = CHART_COLORS.primary }) {
           dot={false}
         />
       </LineChart>
+    </ResponsiveContainer>
+  )
+}
+
+export const FORECAST_THRESHOLDS = { low: 30, spill: 100 }
+
+const dayTime = (date) => Date.parse(`${date}T00:00:00`)
+const shortDay = (time) => formatDate(new Date(time), { day: 'numeric', year: undefined })
+
+function ForecastTooltip({ active, payload }) {
+  if (!active || !payload?.length) return null
+  const point = payload[0].payload
+  const fill = point.predicted !== undefined && point.level === undefined ? point.predicted : point.level
+  return (
+    <div className="chart-tooltip">
+      <p className="chart-tooltip-label">
+        {formatDate(point.date, { year: undefined })}
+        {point.isTarget ? ' · predicted' : point.isToday ? ' · latest' : ''}
+      </p>
+      <div className="chart-tooltip-row">
+        <span className="chart-tooltip-dot" style={{ background: point.isTarget ? CHART_COLORS.violet : CHART_COLORS.primary }} />
+        <span className="chart-tooltip-name">Fill</span>
+        <strong>{fill === null || fill === undefined ? 'No reading' : `${Number(fill).toFixed(1)}%`}</strong>
+      </div>
+      {point.storage !== null && point.storage !== undefined && (
+        <div className="chart-tooltip-row">
+          <span className="chart-tooltip-dot" style={{ background: 'var(--border-strong)' }} />
+          <span className="chart-tooltip-name">Storage</span>
+          <strong>{formatNumber(point.storage)} AF</strong>
+        </div>
+      )}
+      {!point.isTarget && point.rain !== null && point.rain !== undefined && (
+        <div className="chart-tooltip-row">
+          <span className="chart-tooltip-dot" style={{ background: CHART_COLORS.indigo }} />
+          <span className="chart-tooltip-name">Rainfall</span>
+          <strong>{point.rain} mm</strong>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Observed fill (solid) and the model's 14-day prediction (dashed), with spill and low-water lines,
+// like the farmer portal's forecast chart. `forecast` is the API's forecast response (`data`).
+export function ReservoirForecastChart({ forecast }) {
+  const points = forecast.history.map((h) => ({
+    t: dayTime(h.date),
+    date: h.date,
+    level: h.fill_pct,
+    storage: h.storage_acft,
+    rain: h.rain_mm,
+  }))
+  const today = points.at(-1)
+  if (today) {
+    today.isToday = true
+    today.predicted = today.level // the dashed line starts at the latest reading
+  }
+  const next = Number((forecast.predicted_fill_in_14d * 100).toFixed(1))
+  const targetTime = dayTime(forecast.target_date)
+  points.push({
+    t: targetTime,
+    date: forecast.target_date,
+    predicted: next,
+    storage: forecast.predicted_storage_in_14d_acft,
+    isTarget: true,
+  })
+
+  const highest = Math.max(next, ...points.map((p) => p.level ?? 0))
+  const top = Math.max(110, Math.ceil((highest + 5) / 10) * 10) // fill passes 100% while a tank spills
+  const first = points[0].t
+  const ticks = [first, first + (today.t - first) / 2, today.t, targetTime]
+
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <ComposedChart data={points} margin={{ top: 16, right: 12, left: -18, bottom: 0 }}>
+        <CartesianGrid vertical={false} stroke="var(--chart-grid)" strokeDasharray="3 6" />
+        <XAxis
+          dataKey="t"
+          type="number"
+          scale="time"
+          domain={['dataMin', 'dataMax']}
+          ticks={ticks}
+          tickFormatter={shortDay}
+          tickLine={false}
+          axisLine={false}
+          tick={axisTick}
+          dy={10}
+        />
+        <YAxis
+          domain={[0, top]}
+          ticks={[0, 25, 50, 75, 100]}
+          tickLine={false}
+          axisLine={false}
+          tick={axisTick}
+          tickFormatter={(value) => `${value}%`}
+          width={52}
+        />
+        <Tooltip content={<ForecastTooltip />} cursor={{ stroke: 'var(--border-strong)', strokeDasharray: '4 4' }} />
+        <ReferenceLine
+          y={FORECAST_THRESHOLDS.spill}
+          stroke={CHART_COLORS.red}
+          strokeDasharray="6 4"
+          strokeWidth={1.4}
+          label={{ value: `Spill ${FORECAST_THRESHOLDS.spill}%`, position: 'insideTopLeft', fill: CHART_COLORS.red, fontSize: 10.5, fontWeight: 600 }}
+        />
+        <ReferenceLine
+          y={FORECAST_THRESHOLDS.low}
+          stroke={CHART_COLORS.amber}
+          strokeDasharray="6 4"
+          strokeWidth={1.4}
+          label={{ value: `Low ${FORECAST_THRESHOLDS.low}%`, position: 'insideBottomLeft', fill: CHART_COLORS.amber, fontSize: 10.5, fontWeight: 600 }}
+        />
+        <ReferenceLine
+          x={today.t}
+          stroke="var(--border-strong)"
+          strokeDasharray="2 4"
+          label={{ value: 'Today', position: 'top', fill: 'var(--chart-text)', fontSize: 10.5, fontWeight: 600 }}
+        />
+        <Area isAnimationActive={false}
+          type="monotone"
+          dataKey="level"
+          name="Observed"
+          stroke={CHART_COLORS.primary}
+          strokeWidth={2.4}
+          fill={CHART_COLORS.primary}
+          fillOpacity={0.1}
+          dot={false}
+          activeDot={{ r: 4, strokeWidth: 2, stroke: 'var(--surface)' }}
+        />
+        <Line isAnimationActive={false}
+          type="linear"
+          dataKey="predicted"
+          name="Predicted"
+          stroke={CHART_COLORS.violet}
+          strokeWidth={2.4}
+          strokeDasharray="6 4"
+          connectNulls
+          dot={false}
+          activeDot={false}
+        />
+        <ReferenceDot x={today.t} y={today.level} r={4.5} fill={CHART_COLORS.primary} stroke="var(--surface)" strokeWidth={2} />
+        <ReferenceDot x={targetTime} y={next} r={5} fill={CHART_COLORS.violet} stroke="var(--surface)" strokeWidth={2} />
+      </ComposedChart>
     </ResponsiveContainer>
   )
 }
