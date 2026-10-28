@@ -66,9 +66,10 @@ An offline banner appears when the phone loses its connection.
 The farm's reservoir is `farm.reservoirId` (the farmer's `reservoir_id`). Farms on a canal, river or well show the reservoir nearest to the pin.
 There is no sample data: if a request fails the card says why, with a retry.
 
-The forecast endpoint sends the reservoir's `gross_storage_acft` readings of the last 90 days to the model service (`ml-model/server.js`,
-`FORECAST_API_URL` in the API). The model only knows the 43 reservoirs in `ml-model/tank_model.json`; other reservoirs show
-"No forecast model for this reservoir yet". It returns one prediction 14 days ahead (not a daily series), as a fill % of gross capacity.
+The forecast endpoint sends the reservoir's `usable_storage_acft` (effective storage) readings of the last 90 days to the model service
+(`ml-model/server.js`, `FORECAST_API_URL` in the API), and needs at least 15 days of them. The model knows the 117 reservoirs in
+`ml-model/model/meta.json`; other reservoirs show "No forecast model for this reservoir yet". It returns one prediction 14 days ahead
+(not a daily series), as a fill % of the reservoir's full effective storage (`fill_ref`).
 Risk label: "May reach spill level" at 95% or more, "May fall low" at 30% or less.
 
 ## Maps (farm pin)

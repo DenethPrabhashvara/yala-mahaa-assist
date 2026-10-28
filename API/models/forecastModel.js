@@ -4,7 +4,7 @@ const ACFT_PER_MCM = 810.713
 const FORECAST_API_URL = process.env.FORECAST_API_URL || 'http://localhost:5000'
 
 // Sends the readings to the ML service and replies with its forecast.
-// `tank` must be the reservoir name the model was trained on (ml-model/tank_model.json).
+// `tank` must be the reservoir name the model was trained on (ml-model/model/meta.json).
 async function sendForecast(res, tank, rows, idField) {
   const readings = rows.map(({ date, storage_acft }) => ({ date, storage_acft: Number(storage_acft) }))
 
@@ -111,13 +111,14 @@ exports.getForecastByReservoirId = async (req, res, next) => {
       })
     }
 
-    // The model's fill_ref is the gross capacity, so it takes gross storage
+    // The model was trained on effective storage (the source's "Effective Storage_Acft",
+    // stored here as usable_storage_acft), so its fill_ref is an effective-storage level
     const result = await db.query(
-      `SELECT to_char(reading_date, 'YYYY-MM-DD') AS date, gross_storage_acft AS storage_acft
+      `SELECT to_char(reading_date, 'YYYY-MM-DD') AS date, usable_storage_acft AS storage_acft
        FROM reservoir_levels
        WHERE reservoir_id = $1
          AND reading_date >= CURRENT_DATE - INTERVAL '90 days'
-         AND gross_storage_acft IS NOT NULL
+         AND usable_storage_acft IS NOT NULL
        ORDER BY reading_date ASC`,
       [id]
     )
