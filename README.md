@@ -477,5 +477,11 @@ Invoke-RestMethod -Method Post http://localhost:8005/api/sms/send-otp -ContentTy
 ---
 *Yala-Maha · Empowering Sri Lankan Agriculture Through Technology*
 
-#### important
-for to train ml model on google colab notebook i put  the current github pages appi endpoint url for it when hosting it on another platform please mention it again
+#### Colab notebook data source
+`yalamahatankdataml.ipynb` trains the ML model on tank data from the deployed API:
+
+```python
+URL = "https://farmer.example.com/api/mahaweli?format=json"
+```
+
+Replace `farmer.example.com` with the `FARMER_DOMAIN` set in `.env` on the server. If the API moves to another host, update this URL in the notebook.

@@ -8,6 +8,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql     # Postgres 18 images mount here, not .../data
+      - ./api/models/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro   # runs only on an empty volume
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
