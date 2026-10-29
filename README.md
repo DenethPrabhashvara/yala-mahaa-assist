@@ -481,7 +481,7 @@ Invoke-RestMethod -Method Post http://localhost:8005/api/sms/send-otp -ContentTy
 `yalamahatankdataml.ipynb` trains the ML model on tank data from the deployed API:
 
 ```python
-URL = "https://farmer.example.com/api/mahaweli?format=json"
+URL = "https://farmer.yalamaha.aurawebsolution.online/api/data/mahaweli?format=json"
 ```
 
-Replace `farmer.example.com` with the `FARMER_DOMAIN` set in `.env` on the server. If the API moves to another host, update this URL in the notebook.
+This is the `FARMER_DOMAIN` set in `.env` on the server. If the API moves to another host, update this URL in the notebook.
