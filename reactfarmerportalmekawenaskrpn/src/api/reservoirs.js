@@ -10,6 +10,8 @@ import { request } from './auth.js';
 import { haversine } from './googleMaps.js';
 
 const FRESH_MS = 10 * 60 * 1000;
+// Usable storage under this is "low" everywhere in the portal.
+export const LOW_PCT = 30;
 const num = (v) => (v == null || v === '' ? null : Number(v));
 const round1 = (v) => Math.round(v * 10) / 10;
 const title = (s) => (s || '').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
@@ -61,6 +63,14 @@ function farmReservoirs(list, farm, count) {
   return [...(mine ? [mine] : []), ...near.filter((r) => r !== mine)].slice(0, count);
 }
 
+// Readings from the last `days` days up to the latest one (they aren't daily, so not "the last N").
+export function recentReadings(history, days = 7) {
+  const last = history[history.length - 1];
+  if (!last) return [];
+  const from = new Date(Date.parse(last.date) - (days - 1) * 864e5).toISOString().slice(0, 10);
+  return history.filter((h) => h.date >= from);
+}
+
 async function fetchReadings(id, days) {
   const [detail, history] = await Promise.all([
     request(`/api/data/reservoir/${id}`),
@@ -90,8 +100,9 @@ async function fetchForecast(id) {
     throw err;
   }
   const f = res.data;
-  const now = round1(f.fill_now * 100);
-  const next = round1(f.predicted_fill_in_14d * 100);
+  // Everything in usable % / ac-ft, the same as the irrigation department's readings on Home.
+  const now = round1(f.usable_now_pct);
+  const next = round1(f.usable_predicted_pct);
   return {
     from: f.from_date,
     target: f.target_date,
@@ -99,19 +110,19 @@ async function fetchForecast(id) {
     next,
     change: round1(next - now),
     outlook: f.outlook,
-    storageNow: f.storage_now_acft,
-    storageNext: f.predicted_storage_in_14d_acft,
+    storageNow: f.usable_storage_now_acft,
+    storageNext: f.usable_storage_predicted_acft,
     rain7: f.rain_last_7d_mm,
-    // Shape used by ForecastChart. The model gives one value 14 days ahead, not a daily series.
-    history: f.history.map((h) => ({ date: h.date, level: h.fill_pct, rain: h.rain_mm })),
-    forecast: [{ date: f.target_date, level: next, lower: next, upper: next }],
-    thresholds: { low: 30, spill: 100 },
+    // Gauge readings as reported (gaps left as gaps). The model gives one value 14 days ahead.
+    history: f.readings.map((h) => ({ date: h.date, level: h.usable_pct, rain: h.rain_mm })),
+    forecast: [{ date: f.target_date, level: next }],
+    thresholds: { low: LOW_PCT, spill: 100 },
   };
 }
 
 export function forecastRisk(fc) {
   if (fc.next >= 95) return 'spill';
-  if (fc.next <= 30) return 'lowWater';
+  if (fc.next <= LOW_PCT) return 'lowWater';
   return 'stable';
 }
 

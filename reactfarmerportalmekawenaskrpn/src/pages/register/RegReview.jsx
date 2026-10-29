@@ -27,7 +27,7 @@ export default function RegReview() {
       user: farmerId ? { phone: user.phone, farmerId } : user,
       farm,
       draft: emptyDraft(),
-      alerts: [{ id: `f${Date.now()}`, kind: 'farm', title: `Farm registered · ${id}`, body: `${total} acres added to the Mahaweli B irrigation list.`, when: 'Just now', read: false }, ...alerts],
+      alerts: [{ id: `f${Date.now()}`, kind: 'farm', title: `Farm registered - ${id}`, body: `${total} acres registered.`, when: 'Just now', read: false }, ...alerts],
     });
     navigate('/register/done', { replace: true, state: { id } });
   };
@@ -75,7 +75,7 @@ export default function RegReview() {
     <div className="screen">
       <StepHeader step={3} backTo="/register/water" />
       <div>
-        <div className="eyebrow">{t('step')} 3 · {t('checkDetails')}</div>
+        <div className="eyebrow">{t('step')} 3 - {t('checkDetails')}</div>
         <h1 className="h1">{t('allRight')}</h1>
       </div>
 
@@ -94,7 +94,7 @@ export default function RegReview() {
         {draft.crops.map((c) => (
           <div key={c.id} className="row gap12">
             <span className="cdot" style={{ background: CROP_CATALOG[c.category].color }} />
-            <span className="grow f15 fw600">{c.type.replace(/ \(.*\)/, '')} · {c.variety.split(' (')[0]}</span>
+            <span className="grow f15 fw600">{c.type.replace(/ \(.*\)/, '')} - {c.variety.split(' (')[0]}</span>
             <span className="f15">{c.acres} ac</span>
           </div>
         ))}

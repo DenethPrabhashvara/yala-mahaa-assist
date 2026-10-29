@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom'
 import {
   ChevronRight,
   ChevronsLeft,
+  ClipboardList,
   Database,
   Droplets,
   LayoutDashboard,
@@ -15,7 +16,7 @@ import { cn } from '../../utils/format'
 import { useData } from '../../context/DataContext'
 import { useAuth } from '../../context/AuthContext'
 
-const navItems = ({ TANK_SUMMARY, FLOOD_ALERTS }) => [
+const navItems = ({ TANK_SUMMARY, FLOOD_ALERTS, REPORT_COUNTS }) => [
   {
     to: '/',
     label: 'Dashboard',
@@ -37,6 +38,14 @@ const navItems = ({ TANK_SUMMARY, FLOOD_ALERTS }) => [
     hint: 'Gauges & flood watch',
     icon: Waves,
     count: FLOOD_ALERTS.length,
+    tone: 'warning',
+  },
+  {
+    to: '/reports',
+    label: 'Canal Reports',
+    hint: 'Problems farmers reported',
+    icon: ClipboardList,
+    count: REPORT_COUNTS.new,
     tone: 'warning',
   },
   {

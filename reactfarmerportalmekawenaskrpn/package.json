@@ -1,5 +1,5 @@
 {
-  "name": "yala-maha-assist",
+  "name": "yala-maha",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "reservoirs": "node scripts/build-reservoirs.mjs",
-    "dev:phone": "vite --host --mode phone"
+    "dev:phone": "vite --host --mode phone",
+    "dev:apk": "vite --host --mode phone --port 5175 --strictPort"
   },
   "dependencies": {
     "leaflet": "^1.9.4",

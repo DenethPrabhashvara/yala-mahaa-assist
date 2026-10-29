@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { formatPhone, useApp } from '../state/AppContext.jsx';
-import { Card, LangSwitch } from '../components/UI.jsx';
+import { Card, LangSwitch, Logo } from '../components/UI.jsx';
 import Icon from '../components/Icon.jsx';
 import Sheet from '../components/Sheet.jsx';
 
 export default function Profile() {
-  const { t, user, farm, smsEnabled, update, logout, showToast, resetAll } = useApp();
+  const { t, user, farm, smsEnabled, update, logout, showToast } = useApp();
   const navigate = useNavigate();
   const [helpOpen, setHelpOpen] = useState(false);
   const initials = (farm?.name || 'F').split(' ').map((w) => w[0]).slice(0, 2).join('');
@@ -49,17 +49,15 @@ export default function Profile() {
       </button>
 
       <div className="center f12 muted lh">
-        {t('appName')} · {t('version')} 1.0.0<br />
-        <button type="button" className="link-btn f12" onClick={() => { resetAll(); navigate('/', { replace: true }); }}>Reset demo data</button>
-        {' · '}
-        <Link to="/error" className="f12 ink">Preview error screen</Link>
+        <Logo size={40} /><br />
+        {t('appName')} - {t('version')} 1.0.0
       </div>
 
       <Sheet open={helpOpen} onClose={() => setHelpOpen(false)} title={t('help')}>
         <div className="col gap8">
-          <div className="option-row static"><Icon name="user" size={18} /><span className="grow">Agrarian Development Officer · [OFFICER NAME]</span></div>
-          <div className="option-row static"><Icon name="sms" size={18} /><span className="grow">Irrigation maintenance desk · [PHONE]</span></div>
-          <div className="option-row static"><Icon name="pin" size={18} /><span className="grow">Agrarian Service Centre · [ADDRESS]</span></div>
+          <div className="option-row static"><Icon name="user" size={18} /><span className="grow">Agrarian Development Officer - [OFFICER NAME]</span></div>
+          <div className="option-row static"><Icon name="sms" size={18} /><span className="grow">Irrigation maintenance desk - [PHONE]</span></div>
+          <div className="option-row static"><Icon name="pin" size={18} /><span className="grow">Agrarian Service Centre - [ADDRESS]</span></div>
         </div>
         <div className="f13 muted lh">Replace these with the real contacts for your area before launch.</div>
       </Sheet>

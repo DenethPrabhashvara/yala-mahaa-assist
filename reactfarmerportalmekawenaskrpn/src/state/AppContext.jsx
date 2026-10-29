@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { translate } from '../i18n.js';
-import { CROP_CATALOG, SEED_ALERTS, SEED_REPORTS } from '../data.js';
+import { CROP_CATALOG } from '../data.js';
 import * as authApi from '../api/auth.js';
 
 const STORAGE_KEY = 'yma-state-v1';
@@ -13,11 +13,11 @@ function load() {
     if (saved?.user && !saved.user.farmerId && !saved.user.pendingRegistration) {
       return { ...saved, user: null, farm: null };
     }
-    // Water-release alerts saved under their old name
-    if (saved?.alerts) {
-      saved.alerts = saved.alerts.map((a) => (a.kind === 'kapawa'
-        ? { ...a, kind: 'release', title: a.title.replace(/^Kapawa/, 'Water release') }
-        : a));
+    // Drop the old sample alerts; live alerts come from api/alerts.js now. Only the app's own notes are kept.
+    if (saved?.alerts) saved.alerts = saved.alerts.filter((a) => a.kind === 'farm');
+    // Canal names saved with a middle dot ("Kaudulla \u00B7 Lower") are now written with a dash
+    for (const place of [saved?.farm, saved?.draft]) {
+      if (place?.water?.name) place.water.name = place.water.name.replaceAll('\u00B7', '-');
     }
     return saved;
   } catch {
@@ -51,8 +51,8 @@ const defaults = {
   user: null, // { phone, farmerId } once signed in; { phone, pendingRegistration } between OTP and registration
   farm: null, // registered farm
   draft: emptyDraft(),
-  reports: SEED_REPORTS,
-  alerts: SEED_ALERTS,
+  alerts: [], // the app's own notes (farm registered); live alerts are in api/alerts.js
+  readAlerts: [], // ids of live alerts the farmer has opened
   smsEnabled: true,
 };
 

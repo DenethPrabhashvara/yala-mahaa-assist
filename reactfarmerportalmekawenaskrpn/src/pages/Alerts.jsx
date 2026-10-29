@@ -1,6 +1,8 @@
 import { useApp } from '../state/AppContext.jsx';
 import { IconBtn } from '../components/UI.jsx';
 import Icon from '../components/Icon.jsx';
+import { useFarmConditions } from '../api/farm.js';
+import { useAlerts } from '../api/alerts.js';
 
 const KIND = {
   flood: { icon: 'warn', cls: 'amber' },
@@ -11,10 +13,16 @@ const KIND = {
 };
 
 export default function Alerts() {
-  const { t, alerts, update } = useApp();
+  const { t, farm, update } = useApp();
+  const alerts = useAlerts(useFarmConditions(farm));
   const unread = alerts.filter((a) => !a.read).length;
-  const markAll = () => update({ alerts: alerts.map((a) => ({ ...a, read: true })) });
-  const toggle = (id) => update({ alerts: alerts.map((a) => (a.id === id ? { ...a, read: true } : a)) });
+  // live alerts remember read ids, the app's own notes carry their read flag
+  const markRead = (ids) => update((st) => ({
+    readAlerts: [...new Set([...st.readAlerts, ...ids])].slice(-200),
+    alerts: st.alerts.map((a) => (ids.includes(a.id) ? { ...a, read: true } : a)),
+  }));
+  const markAll = () => markRead(alerts.map((a) => a.id));
+  const toggle = (id) => markRead([id]);
 
   return (
     <div className="screen">

@@ -17,7 +17,7 @@ function Art({ kind }) {
     return (
       <Aerial variant="hero" height="100%" radius={32} photo={PHOTOS.flood}>
         <div className="art-float" style={{ left: 16, bottom: 16, right: 16 }}>
-          <span className="warn-badge"><Icon name="warn" size={14} stroke={2.6} />FLOOD WATCH · Level 2</span>
+          <span className="warn-badge"><Icon name="warn" size={14} stroke={2.6} />FLOOD WATCH - Level 2</span>
           <div className="f18 fw600" style={{ marginTop: 8 }}>Yan Oya river may overflow</div>
           <div className="f13" style={{ color: COLORS.dim }}>Peak expected Thursday evening</div>
         </div>
@@ -30,7 +30,7 @@ function Art({ kind }) {
         <div className="art-float" style={{ left: 16, bottom: 16, right: 16 }}>
           <div className="row gap10">
             <div className="date-tile"><small>THU</small><b>29</b></div>
-            <div><div className="f24 fw600">6:00 AM</div><div className="f13" style={{ color: COLORS.dim }}>Water release · Channel D-4</div></div>
+            <div><div className="f24 fw600">6:00 AM</div><div className="f13" style={{ color: COLORS.dim }}>Water release - Channel D-4</div></div>
           </div>
           <div className="mini-bars" aria-hidden="true">{[48, 55, 58, 62, 66, 69, 72].map((h, i) => <span key={i} style={{ height: `${h}%` }} />)}</div>
         </div>
@@ -42,7 +42,7 @@ function Art({ kind }) {
       <div className="art-float" style={{ left: 16, bottom: 16, right: 16 }}>
         <div className="row gap10">
           <span className="ok-circle"><Icon name="check" size={18} stroke={2.8} /></span>
-          <div><div className="f15 fw600">Received · CR-2041</div><div className="f13" style={{ color: COLORS.dim }}>Officer visit within 2 days</div></div>
+          <div><div className="f15 fw600">Received - CR-2041</div><div className="f13" style={{ color: COLORS.dim }}>Officer visit within 2 days</div></div>
         </div>
       </div>
     </Aerial>
