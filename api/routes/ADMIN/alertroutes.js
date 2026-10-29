@@ -46,7 +46,7 @@ smsrouter.route('/status').get((req, res) => {
     status: 'success',
     data: {
       provider: 'Text.lk',
-      senderId: process.env.TEXTLK_SENDER_ID || 'TextLKDemo',
+      senderId: process.env.TEXTLK_SENDER_ID || 'yala-maha',
       configured: Boolean(process.env.TEXTLK_API_TOKEN),
       dryRun: process.env.SMS_DRY_RUN === 'true',
       alertThreshold: Number(process.env.ALERT_THRESHOLD) || 90

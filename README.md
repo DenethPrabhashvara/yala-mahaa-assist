@@ -193,7 +193,7 @@ APIDBPORT=5432
 
 # Text.lk SMS Gateway Credentials
 TEXTLK_API_TOKEN=your_textlk_api_token
-TEXTLK_SENDER_ID=TextLKDemo
+TEXTLK_SENDER_ID=yala-maha
 SMS_DRY_RUN=false
 
 # Alert System Configuration

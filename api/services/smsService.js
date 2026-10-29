@@ -66,7 +66,7 @@ async function sendSms(recipients, message, options = {}) {
     throw new Error('TEXTLK_API_TOKEN is not configured.')
   }
 
-  const senderId = process.env.TEXTLK_SENDER_ID || 'TextLKDemo'
+  const senderId = process.env.TEXTLK_SENDER_ID || 'yala-maha'
 
   const response = await fetch('https://app.text.lk/api/v3/sms/send', {
         method: 'POST',
