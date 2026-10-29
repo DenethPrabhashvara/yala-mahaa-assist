@@ -21,7 +21,8 @@ const SECRET_COLUMNS = {
   admins: ['password_hash'],
   admin_sessions: ['refresh_token_hash'],
   farmer_sessions: ['refresh_token_hash'],
-  farmers: ['hashed_nic']
+  farmers: ['hashed_nic'],
+  canal_reports: ['photo']   // binary; the Canal Reports page shows it
 }
 // Admin accounts are managed by super_admin only (create accounts with POST /admin/auth/admins)
 const SUPER_ADMIN_TABLES = ['admins', 'admin_sessions']

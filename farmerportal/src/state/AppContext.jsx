@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { translate } from '../i18n.js';
-import { CROP_CATALOG, SEED_ALERTS, SEED_REPORTS } from '../data.js';
+import { CROP_CATALOG } from '../data.js';
 import * as authApi from '../api/auth.js';
 
 const STORAGE_KEY = 'yma-state-v1';
@@ -13,12 +13,8 @@ function load() {
     if (saved?.user && !saved.user.farmerId && !saved.user.pendingRegistration) {
       return { ...saved, user: null, farm: null };
     }
-    // Water-release alerts saved under their old name
-    if (saved?.alerts) {
-      saved.alerts = saved.alerts.map((a) => (a.kind === 'kapawa'
-        ? { ...a, kind: 'release', title: a.title.replace(/^Kapawa/, 'Water release') }
-        : a));
-    }
+    // Sample alerts and reports from older versions; both now come from live data
+    if (saved) { delete saved.alerts; delete saved.reports; delete saved.smsEnabled; }
     return saved;
   } catch {
     return null;
@@ -51,9 +47,7 @@ const defaults = {
   user: null, // { phone, farmerId } once signed in; { phone, pendingRegistration } between OTP and registration
   farm: null, // registered farm
   draft: emptyDraft(),
-  reports: SEED_REPORTS,
-  alerts: SEED_ALERTS,
-  smsEnabled: true,
+  readAlerts: [], // ids of alerts the farmer has opened (api/alerts.js)
 };
 
 const AppContext = createContext(null);
@@ -155,6 +149,7 @@ export function farmFromProfile(farmer, tankName = null) {
     nearest: details?.location_label || [farmer.division, farmer.district].filter(Boolean).join(', '),
     water,
     reservoirId: farmer.reservoir_id ?? null,
+    smsEnabled: farmer.sms_enabled !== false,
     registeredAt: Date.parse(farmer.created_at) || Date.now(),
   };
 }

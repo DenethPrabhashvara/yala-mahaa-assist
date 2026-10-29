@@ -4,22 +4,24 @@ import { Link } from 'react-router-dom';
 import { IconBtn } from '../components/UI.jsx';
 import TankPicker from '../components/TankPicker.jsx';
 import Icon from '../components/Icon.jsx';
-import { WATER_RELEASE } from '../data.js';
 import { COLORS } from '../theme.js';
 import { fmtDay } from '../components/ForecastChart.jsx';
 import { useFarmReservoirs, useReservoirReadings } from '../api/reservoirs.js';
+import { useFarmRelease } from '../api/nearby.js';
+
+const SHORT = { day: 'numeric', month: 'short' };
 
 // Leaflet (~150 KB) only downloads when this page opens.
 const WaterMap = lazy(() => import('../components/WaterMap.jsx'));
 
 export default function Water() {
-  const { t, lang, showToast, farm } = useApp();
+  const { t, lang, farm } = useApp();
   const tanks = useFarmReservoirs(farm);
   const tankList = tanks.data || [];
   const [picked, setPicked] = useState(null);
   const reservoirId = tankList.some((x) => x.id === picked) ? picked : tankList[0]?.id;
   const { data, error, reload } = useReservoirReadings(reservoirId);
-  const [remind, setRemind] = useState(false);
+  const release = useFarmRelease(farm);
   const week = (data?.history || []).slice(-7);
   const name = data?.reservoir.name || tankList.find((x) => x.id === reservoirId)?.name || '';
   const todayIso = new Date(Date.now() + 5.5 * 3600e3).toISOString().slice(0, 10);
@@ -76,20 +78,26 @@ export default function Water() {
           <span className="round-arrow"><Icon name="arrow" size={18} color="#fff" stroke={2.4} /></span>
         </Link>
         <div className="hr dark" />
-        <div className="f14 fw600">{t('releaseSchedule')}</div>
-        <div className="col gap8">
-          {WATER_RELEASE.schedule.map((s) => (
-            <div key={s.label} className="sched-row">
-              <span className="sd" style={{ background: s.active ? 'var(--accent)' : COLORS.muted }} />
-              <span className={`grow ${s.active ? 'fw600' : ''}`}>{s.label}</span>
-              <span className="dim">{s.hours} hrs</span>
-            </div>
-          ))}
-        </div>
-        <button type="button" className={`pill-btn ${remind ? 'accent' : 'white'} big`} onClick={() => { setRemind(!remind); showToast(remind ? 'Reminder removed' : 'We will SMS you 12 hours before the water release'); }}>
-          {remind ? 'Reminder on · 12 hrs before' : 'Remind me by SMS'}
-          <span className="round-arrow"><Icon name={remind ? 'check' : 'bell'} size={18} color="#fff" stroke={2.2} /></span>
-        </button>
+        <div className="f14 fw600">{t('releaseSchedule')}{release.data ? ` · ${release.data.scheme}` : ''}</div>
+        {!release.data && <div className="f14 dim">{release.loading ? t('loadingRelease') : release.error ? release.error.message : t('noRelease')}</div>}
+        {release.data && (
+          <div className="col gap8">
+            {release.data.sections.map((s) => {
+              const on = s.status === 'flowing';
+              const days = Math.round((Date.parse(s.end) - Date.parse(s.start)) / 864e5) + 1;
+              return (
+                <div key={s.name} className="sched-row">
+                  <span className="sd" style={{ background: on ? 'var(--accent)' : COLORS.muted }} />
+                  <span className={`grow min0 ${s === release.data.main ? 'fw600' : ''}`}>
+                    <span className="block ellipsis">{s.name}</span>
+                    <span className="block f13 dim">{fmtDay(s.start, lang, SHORT)} – {fmtDay(s.end, lang, SHORT)} · {t(s.status)}</span>
+                  </span>
+                  <span className="dim nowrap">{days} {t('days')}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

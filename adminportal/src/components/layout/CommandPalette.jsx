@@ -13,6 +13,7 @@ import {
   Settings,
   Users,
   Waves,
+  Wrench,
   X,
 } from 'lucide-react'
 import { cn } from '../../utils/format'
@@ -26,6 +27,7 @@ const PAGES = [
   { id: 'page-rivers', label: 'River Monitoring', hint: 'Gauges and flood thresholds', to: '/rivers', icon: Waves, type: 'Page' },
   { id: 'page-sms', label: 'SMS Gateway', hint: 'Campaigns and delivery reports', to: '/sms', icon: MessageSquareText, type: 'Page' },
   { id: 'page-farmers', label: 'Farmer Portal', hint: 'Registry and water issue schedule', to: '/farmers', icon: Users, type: 'Page' },
+  { id: 'page-reports', label: 'Canal Reports', hint: 'Blocked channels, leaks and broken gates from farmers', to: '/reports', icon: Wrench, type: 'Page' },
   { id: 'page-database', label: 'Database', hint: 'Browse and edit every table', to: '/database', icon: Database, type: 'Page' },
   { id: 'page-settings', label: 'Settings', hint: 'Workspace preferences and notifications', to: '/settings', icon: Settings, type: 'Page' },
 ]

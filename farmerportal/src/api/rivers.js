@@ -12,7 +12,17 @@ export function fetchRivers() {
     .then((res) => res.data.map((river) => ({
       name: river.name,
       stations: river.stations
-        .map((s) => ({ name: s.name, lat: num(s.latitude), lng: num(s.longitude) }))
+        .map((s) => ({
+          name: s.name,
+          lat: num(s.latitude),
+          lng: num(s.longitude),
+          level: num(s.water_level),
+          previous: num(s.previous_level),
+          alert: num(s.alert_level),
+          minor: num(s.minor_flood_level),
+          major: num(s.major_flood_level),
+          at: s.reading_at,
+        }))
         .filter((s) => s.lat != null && s.lng != null),
     })))
     .catch((err) => { listPromise = null; throw err; });

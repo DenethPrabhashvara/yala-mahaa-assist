@@ -4,11 +4,28 @@ import { formatPhone, useApp } from '../state/AppContext.jsx';
 import { Card, LangSwitch } from '../components/UI.jsx';
 import Icon from '../components/Icon.jsx';
 import Sheet from '../components/Sheet.jsx';
+import { updateProfile } from '../api/auth.js';
 
 export default function Profile() {
-  const { t, user, farm, smsEnabled, update, logout, showToast, resetAll } = useApp();
+  const { t, user, farm, update, logout, showToast, resetAll } = useApp();
   const navigate = useNavigate();
   const [helpOpen, setHelpOpen] = useState(false);
+  const [savingSms, setSavingSms] = useState(false);
+  const smsEnabled = farm?.smsEnabled !== false;
+
+  // Saved on the server: group SMS from the irrigation office skip farmers who turned this off
+  const setSms = async (on) => {
+    setSavingSms(true);
+    try {
+      await updateProfile({ sms_enabled: on });
+      update((s) => ({ farm: { ...s.farm, smsEnabled: on } }));
+      showToast(t(on ? 'smsOn' : 'smsOff'));
+    } catch (err) {
+      showToast(err.status === 0 ? t('smsSaveFailed') : err.message, 'error');
+    } finally {
+      setSavingSms(false);
+    }
+  };
   const initials = (farm?.name || 'F').split(' ').map((w) => w[0]).slice(0, 2).join('');
 
   return (
@@ -36,8 +53,8 @@ export default function Profile() {
         <label className="list-row">
           <Icon name="sms" size={20} />
           <span className="grow"><span className="block f15 fw600">{t('smsAlerts')}</span><span className="block f13 muted">{t('worksNoData')}</span></span>
-          <input type="checkbox" className="switch" checked={smsEnabled}
-            onChange={(e) => { update({ smsEnabled: e.target.checked }); showToast(e.target.checked ? 'SMS alerts on' : 'SMS alerts off'); }} />
+          <input type="checkbox" className="switch" checked={smsEnabled} disabled={!farm || savingSms}
+            onChange={(e) => setSms(e.target.checked)} />
         </label>
         <Link to="/alerts" className="list-row"><Icon name="bell" size={20} /><span className="grow f15 fw600">{t('alerts')}</span><Icon name="chevron" size={18} /></Link>
         <Link to="/fields" className="list-row"><Icon name="map" size={20} /><span className="grow f15 fw600">{t('myFields')}</span><Icon name="chevron" size={18} /></Link>

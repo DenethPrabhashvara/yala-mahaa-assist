@@ -48,7 +48,7 @@ export default function Fields() {
               <dl className="kv-list">
                 <div className="kv"><dt>{t('landArea')}</dt><dd>{c.acres} ac</dd></div>
                 <div className="kv"><dt>{t('lastYield')}</dt><dd>{c.yield || '—'}</dd></div>
-                <div className="kv"><dt>Unit</dt><dd>{YIELD_UNITS.find((u) => u.id === c.unit)?.label}</dd></div>
+                <div className="kv"><dt>{t('unit')}</dt><dd>{YIELD_UNITS.find((u) => u.id === c.unit)?.label}</dd></div>
               </dl>
             </Card>
           ))}

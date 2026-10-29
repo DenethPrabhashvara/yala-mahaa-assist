@@ -8,6 +8,7 @@ const farmerrouter = require('./farmerroutes.js')
 const dbrouter = require('./dbroutes.js')
 const smsrouter = require('./alertroutes.js')
 const datarouter = require('./dataroutes.js')
+const adminreportrouter = require('./reportroutes.js')
 
 const adminrouter =express.Router()
 
@@ -15,6 +16,7 @@ adminrouter.use('/auth', adminauthrouter)
 adminrouter.use('/farmers', requireAdmin, farmerrouter)  
 adminrouter.use('/db',requireAdmin, dbrouter)
 adminrouter.use('/data', requireAdmin, datarouter)
+adminrouter.use('/reports', requireAdmin, (req, res, next) => (req.method === 'GET' ? next() : canEdit(req, res, next)), adminreportrouter)
 
 adminrouter.use('/sms', requireAdmin, (req, res, next) => (req.method === 'GET' ? next() : canEdit(req, res, next)), smsrouter)
 

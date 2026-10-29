@@ -104,6 +104,18 @@ export async function saveFarmDetails(farm) {
   return res.data;
 }
 
+// The signed-in farmer's canal problem reports, newest first
+export async function listReports() {
+  const res = await authed('/api/reports');
+  return res.data;
+}
+
+// { issue_type, location, note, photo (JPEG data URL) }
+export async function sendReport(report) {
+  const res = await authed('/api/reports', { method: 'POST', body: report });
+  return res.data;
+}
+
 export async function logout() {
   try {
     await request('/api/auth/logout', { method: 'POST' });

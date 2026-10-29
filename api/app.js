@@ -8,6 +8,7 @@ const helmet =require('helmet')  //Security
 const cookieparser = require('cookie-parser')
 const authrouter = require('./routes/authroutes.js')
 const adminrouter =require('./routes/ADMIN/index.js')
+const { reportrouter } = require('./routes/reportroutes.js')
 
 // Admin and farmer tokens must never be interchangeable
 if (!process.env.JWT_SECRET || !process.env.JWT_ADMIN_SECRET || process.env.JWT_SECRET === process.env.JWT_ADMIN_SECRET) {
@@ -116,6 +117,7 @@ app.get('/mahaweli-data', (req, res) => {
 
 app.use('/api/data', apiroute) // for resevoirs and tanks
 app.use('/api/auth', authrouter)   //for l0gin auth
+app.use('/api/reports', reportrouter)   // canal problem reports from farmers
 
 // Error handling middleware
 app.use(errorHandle)

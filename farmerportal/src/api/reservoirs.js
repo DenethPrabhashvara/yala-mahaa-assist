@@ -48,17 +48,30 @@ export function fetchReservoirs() {
   return listPromise;
 }
 
-// The farmer's own reservoir first, then the ones nearest to the farm.
+const NEAR_RADIUS_M = 30000;
+
+// The scheme (tank) a canal belongs to: "Minneriya · Left bank" and "Minneriya canals" → "Minneriya"
+export function canalScheme(name) {
+  return (name || '').split(' · ')[0].replace(/ canals$/i, '').trim();
+}
+
+// The farmer's own reservoir first (marked `own`), then other reservoirs within 30 km of the farm.
+// With neither, the single nearest reservoir, so the dashboard still has a tank to show.
 function farmReservoirs(list, farm, count) {
   const pin = farm?.pin?.lat != null ? farm.pin : null;
   const tank = farm?.water?.source === 'tank' ? farm.water.name : null;
+  const scheme = farm?.water?.source === 'canal' ? canalScheme(farm.water.name).toLowerCase() : null;
   const mine = list.find((r) => r.id === farm?.reservoirId)
     // Older farms only kept the name; the portal may show it with a suffix, e.g. "Senanayaka Sam (…)".
-    || (tank && list.find((r) => tank === r.name || tank.startsWith(`${r.name} (`)));
-  const near = pin
-    ? list.filter((r) => r.lat != null).sort((a, b) => haversine(pin, a) - haversine(pin, b))
-    : list;
-  return [...(mine ? [mine] : []), ...near.filter((r) => r !== mine)].slice(0, count);
+    || (tank && list.find((r) => tank === r.name || tank.startsWith(`${r.name} (`)))
+    // A canal farmer's tank is the canal's scheme tank
+    || (scheme && list.find((r) => r.name.toLowerCase() === scheme || r.name.toLowerCase().startsWith(`${scheme} `)));
+  const byDistance = pin
+    ? list.filter((r) => r.lat != null && r !== mine).map((r) => ({ r, d: haversine(pin, r) })).sort((a, b) => a.d - b.d)
+    : [];
+  let near = byDistance.filter((x) => x.d <= NEAR_RADIUS_M).map((x) => x.r);
+  if (!mine && !near.length && byDistance.length) near = [byDistance[0].r];
+  return [...(mine ? [{ ...mine, own: true }] : []), ...near].slice(0, count);
 }
 
 async function fetchReadings(id, days) {
@@ -146,7 +159,7 @@ export function useApiData(key, load) {
 
 // Reservoirs to show on the dashboard for this farm (its own first).
 export function useFarmReservoirs(farm, count = 4) {
-  const key = `farm:${farm?.reservoirId ?? farm?.water?.name ?? ''}:${farm?.pin?.lat ?? ''},${farm?.pin?.lng ?? ''}`;
+  const key = `farm:${farm?.reservoirId ?? ''}:${farm?.water?.source ?? ''}:${farm?.water?.name ?? ''}:${farm?.pin?.lat ?? ''},${farm?.pin?.lng ?? ''}`;
   return useApiData(key, () => fetchReservoirs().then((list) => farmReservoirs(list, farm, count)));
 }
 

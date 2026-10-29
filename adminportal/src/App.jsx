@@ -5,6 +5,7 @@ import { Tanks } from './pages/Tanks'
 import { Rivers } from './pages/Rivers'
 import { SmsGateway } from './pages/SmsGateway'
 import { FarmerPortal } from './pages/FarmerPortal'
+import { CanalReports } from './pages/CanalReports'
 import { Database } from './pages/Database'
 import { Settings } from './pages/Settings'
 import { Login } from './pages/Login'
@@ -35,6 +36,7 @@ export default function App() {
         <Route path="rivers" element={<Rivers />} />
         <Route path="sms" element={<SmsGateway />} />
         <Route path="farmers" element={<FarmerPortal />} />
+        <Route path="reports" element={<CanalReports />} />
         <Route path="database" element={<Database />} />
         <Route path="settings" element={<Settings />} />
         <Route path="*" element={<Navigate to="/" replace />} />

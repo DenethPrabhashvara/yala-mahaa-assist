@@ -78,7 +78,7 @@ async function insertFarmer(client, farmer, hashedNic) {
     return result.rows[0]
 }
 
-const FARMER_COLUMNS = 'farmer_id, farm_id, full_name,phone,address,district,division,farm_latitude, farm_longitude,reservoir_id, tank_id,land_acres, primary_crop, created_at, updated_at'
+const FARMER_COLUMNS = 'farmer_id, farm_id, full_name,phone,address,district,division,farm_latitude, farm_longitude,reservoir_id, tank_id,land_acres, primary_crop, sms_enabled, created_at, updated_at'
 
 // Needs the requireFarmer middleware in front of it
 async function getFarmerDetails(req,res){
@@ -95,7 +95,7 @@ async function getFarmerDetails(req,res){
 // Fields a farmer may change themselves. Phone and NIC are their identity, so they stay fixed.
 const UPDATABLE_FIELDS = [
     'full_name', 'address', 'district', 'division', 'farm_latitude', 'farm_longitude',
-    'reservoir_id', 'tank_id', 'land_acres', 'primary_crop'
+    'reservoir_id', 'tank_id', 'land_acres', 'primary_crop', 'sms_enabled'
 ]
 
 // Fields only an admin may change, on top of UPDATABLE_FIELDS
@@ -120,6 +120,9 @@ function validateFarmerChanges(body) {
     }
     for (const field of ['farm_latitude', 'farm_longitude', 'reservoir_id', 'tank_id', 'land_acres']) {
         if (changes[field] != null && !Number.isFinite(Number(changes[field]))) return { error: `${field} must be a number.` }
+    }
+    if (changes.sms_enabled !== undefined && typeof changes.sms_enabled !== 'boolean') {
+        return { error: 'sms_enabled must be true or false.' }
     }
     if (changes.reservoir_id != null && changes.tank_id != null) {
         return { error: 'A farmer can be linked to a reservoir or a tank, not both.'}

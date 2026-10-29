@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   Users,
   Waves,
+  Wrench,
 } from 'lucide-react'
 import { cn } from '../../utils/format'
 import { useData } from '../../context/DataContext'
@@ -50,6 +51,12 @@ const navItems = ({ TANK_SUMMARY, FLOOD_ALERTS }) => [
     label: 'Farmer Portal',
     hint: 'Registry & water schedule',
     icon: Users,
+  },
+  {
+    to: '/reports',
+    label: 'Canal Reports',
+    hint: 'Problems farmers reported',
+    icon: Wrench,
   },
   {
     to: '/database',

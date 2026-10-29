@@ -7,9 +7,10 @@ import { CROP_CATALOG } from '../../data.js';
 import { waterLabel } from './RegWater.jsx';
 import { COLORS } from '../../theme.js';
 import { findReservoirId, register, saveFarmDetails, updateProfile } from '../../api/auth.js';
+import { canalScheme } from '../../api/reservoirs.js';
 
 export default function RegReview() {
-  const { t, draft, update, user, alerts, showToast } = useApp();
+  const { t, draft, update, user, showToast } = useApp();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -27,7 +28,6 @@ export default function RegReview() {
       user: farmerId ? { phone: user.phone, farmerId } : user,
       farm,
       draft: emptyDraft(),
-      alerts: [{ id: `f${Date.now()}`, kind: 'farm', title: `Farm registered · ${id}`, body: `${total} acres added to the Mahaweli B irrigation list.`, when: 'Just now', read: false }, ...alerts],
     });
     navigate('/register/done', { replace: true, state: { id } });
   };
@@ -36,7 +36,9 @@ export default function RegReview() {
     setBusy(true);
     setError('');
     try {
-      const tank = draft.water?.source === 'tank' ? draft.water.name : null;
+      // A canal farmer is linked to the canal's scheme tank, so tank-wide SMS reach them too
+      const tank = draft.water?.source === 'tank' ? draft.water.name
+        : draft.water?.source === 'canal' ? canalScheme(draft.water.name) : null;
       const details = {
         full_name: draft.name.trim(),
         address: draft.address.trim(),

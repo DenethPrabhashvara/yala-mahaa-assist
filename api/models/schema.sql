@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS farmers (
   land_acres      NUMERIC(10,2) CHECK (land_acres >= 0),
   primary_crop    TEXT,
   is_active       BOOLEAN NOT NULL DEFAULT TRUE,
+  sms_enabled     BOOLEAN NOT NULL DEFAULT TRUE,                 -- the farmer's own choice in the portal
 
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -257,3 +258,23 @@ CREATE TABLE IF NOT EXISTS sms_campaigns (
 );
 
 CREATE INDEX IF NOT EXISTS idx_sms_campaigns_created ON sms_campaigns (created_at DESC);
+
+-- Canal problem reports from the farmer portal
+CREATE TABLE IF NOT EXISTS canal_reports (
+  id          SERIAL PRIMARY KEY,
+  farmer_id   UUID REFERENCES farmers(farmer_id) ON DELETE SET NULL,
+  issue_type  TEXT NOT NULL CHECK (issue_type IN ('blockage', 'leak', 'gate', 'other')),
+  location    TEXT NOT NULL,
+  note        TEXT,
+  photo       BYTEA,                                   -- JPEG, resized by the portal before upload
+  status      TEXT NOT NULL DEFAULT 'received' CHECK (status IN ('received', 'inProgress', 'fixed')),
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_canal_reports_farmer ON canal_reports (farmer_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_canal_reports_status ON canal_reports (status, created_at DESC);
+
+DROP TRIGGER IF EXISTS trg_canal_reports_updated_at ON canal_reports;
+CREATE TRIGGER trg_canal_reports_updated_at BEFORE UPDATE ON canal_reports
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();

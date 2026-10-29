@@ -1,34 +1,5 @@
-// Sample data. Replace with API calls (river gauges, water release schedule, Text.lk) later.
-// Tank levels and forecasts already come from the API: see api/reservoirs.js.
-
-export const FLOOD = {
-  level: 2, maxLevel: 4, severity: 'watch', river: 'Yan Oya', gauge: 4.1, trend: 'rising', peak: 'Thursday evening',
-  title: 'Yan Oya river may overflow',
-  steps: [
-    'Move cattle and water pumps to higher ground',
-    'Do not cross low causeways after rain',
-    'Keep your phone charged — warnings come by SMS',
-  ],
-  issued: '08:40',
-};
-
-export const WATER_RELEASE = {
-  canal: 'Palugaswewa feeder', channel: 'D-4', status: 'scheduled',
-  next: { day: 'THU', date: 29, label: 'Thu 29 Oct', time: '6:00 AM', hours: 48 },
-  schedule: [
-    { label: 'Thu 29 Oct · 6:00 AM', hours: 48, active: true },
-    { label: 'Mon 2 Nov · 6:00 AM', hours: 48, active: false },
-    { label: 'Fri 6 Nov · 6:00 AM', hours: 36, active: false },
-  ],
-};
-
-export const FORECAST = [
-  { day: 'Today', mm: 2, icon: 'sun' },
-  { day: 'Thu', mm: 14, icon: 'cloud' },
-  { day: 'Fri', mm: 38, icon: 'rain', heavy: true },
-];
-
-export const FORECAST_ADVICE = "Wait for Friday's rain before transplanting paddy seedlings. Water highland vegetables early in the morning.";
+// Fixed lists the portal needs. Live data (tanks, rivers, rain, water release, reports) comes from
+// the API and Open-Meteo: see api/reservoirs.js, api/nearby.js and api/alerts.js.
 
 export const CROP_CATALOG = {
   paddy: {
@@ -83,24 +54,6 @@ export const ISSUE_TYPES = [
   { id: 'other', key: 'other', icon: 'dots' },
 ];
 
-export const CANAL_SPOTS = [
-  'Palugaswewa feeder · near D-4',
-  'Palugaswewa feeder · gate 7',
-  'Kudawewa left bank canal',
-  'Horiwila field channel F-2',
-  'Maradankadawala distributory',
-];
-
-export const SEED_REPORTS = [
-  { id: 'CR-1987', type: 'gate', spot: 'Palugaswewa feeder · gate 7', status: 'inProgress', when: '12 Oct', note: 'Gate wheel stuck, cannot close.' },
-  { id: 'CR-1902', type: 'leak', spot: 'Kudawewa left bank canal', status: 'fixed', when: '28 Sep', note: 'Water leaking under bund.' },
-];
-
-export const SEED_ALERTS = [
-  { id: 'a1', kind: 'flood', title: 'Flood watch · Yan Oya', body: 'River may overflow Thursday evening. Move livestock and pumps to higher ground.', when: '08:40', read: false },
-  { id: 'a2', kind: 'release', title: 'Water release on Thursday', body: 'Water release to Channel D-4 at 6:00 AM for 48 hours.', when: 'Yesterday', read: false },
-  { id: 'a3', kind: 'tank', title: 'Palugaswewa Tank is low', body: 'Tank at 34%. Use water carefully this week.', when: '22 Oct', read: true },
-];
 
 // Real photos (Wikimedia Commons, credits in public/photos/CREDITS.md).
 const photo = (f) => `${import.meta.env.BASE_URL}photos/${f}`;

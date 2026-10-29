@@ -54,19 +54,20 @@ smsrouter.route('/status').get((req, res) => {
   })
 })
 
-// Who a campaign can go to. Only active farmers get messages.
+// Who a campaign can go to. Group messages only go to active farmers who left SMS alerts on in
+// the farmer portal; a message to one chosen farmer is sent either way.
 // { type: 'all' } | { type: 'district', value } | { type: 'reservoir', value: id } | { type: 'tank', value: id } | { type: 'farmer', value: farmer_id }
 async function audienceFarmers(audience) {
   const type = audience?.type
   const value = audience?.value
   if (type === 'all') {
-    return db.query('SELECT full_name, phone FROM farmers WHERE is_active')
+    return db.query('SELECT full_name, phone FROM farmers WHERE is_active AND sms_enabled')
   }
   if (type === 'district' && value) {
-    return db.query('SELECT full_name, phone FROM farmers WHERE is_active AND district ILIKE $1', [String(value)])
+    return db.query('SELECT full_name, phone FROM farmers WHERE is_active AND sms_enabled AND district ILIKE $1', [String(value)])
   }
   if ((type === 'reservoir' || type === 'tank') && Number.isInteger(Number(value))) {
-    return db.query(`SELECT full_name, phone FROM farmers WHERE is_active AND ${type}_id = $1`, [Number(value)])
+    return db.query(`SELECT full_name, phone FROM farmers WHERE is_active AND sms_enabled AND ${type}_id = $1`, [Number(value)])
   }
   if (type === 'farmer' && value) {
     return db.query('SELECT full_name, phone FROM farmers WHERE farmer_id::text = $1', [String(value)])
@@ -77,13 +78,13 @@ async function audienceFarmers(audience) {
 smsrouter.route('/audiences').get(async (req, res, next) => {
   try {
     const [all, districts, reservoirs, tanks] = await Promise.all([
-      db.query('SELECT count(*)::int AS n FROM farmers WHERE is_active'),
-      db.query(`SELECT initcap(district) AS name, count(*)::int AS farmers FROM farmers WHERE is_active
+      db.query('SELECT count(*)::int AS n FROM farmers WHERE is_active AND sms_enabled'),
+      db.query(`SELECT initcap(district) AS name, count(*)::int AS farmers FROM farmers WHERE is_active AND sms_enabled
                 GROUP BY initcap(district) ORDER BY farmers DESC, name`),
       db.query(`SELECT r.id, r.name, count(*)::int AS farmers FROM farmers f JOIN reservoirs r ON r.id = f.reservoir_id
-                WHERE f.is_active GROUP BY r.id ORDER BY farmers DESC, r.name`),
+                WHERE f.is_active AND f.sms_enabled GROUP BY r.id ORDER BY farmers DESC, r.name`),
       db.query(`SELECT t.id, t.tank_name AS name, count(*)::int AS farmers FROM farmers f JOIN mahawelitanks t ON t.id = f.tank_id
-                WHERE f.is_active GROUP BY t.id ORDER BY farmers DESC, t.tank_name`)
+                WHERE f.is_active AND f.sms_enabled GROUP BY t.id ORDER BY farmers DESC, t.tank_name`)
     ])
     res.status(200).json({
       status: 'success',
@@ -131,7 +132,7 @@ smsrouter.route('/campaigns').post(async (req, res, next) => {
       return res.status(400).json({ status: 'fail', message: 'Choose who gets the message.' })
     }
     if (farmers.rows.length === 0) {
-      return res.status(400).json({ status: 'fail', message: 'No active farmers in this group.' })
+      return res.status(400).json({ status: 'fail', message: 'No active farmers with SMS alerts on in this group.' })
     }
     if (farmers.rows.length > MAX_CAMPAIGN_RECIPIENTS) {
       return res.status(400).json({ status: 'fail', message: `This group has ${farmers.rows.length} farmers; send to at most ${MAX_CAMPAIGN_RECIPIENTS} at a time.` })
