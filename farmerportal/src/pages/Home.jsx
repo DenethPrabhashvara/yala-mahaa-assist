@@ -42,7 +42,8 @@ function ForecastRow({ reservoirId, t }) {
   );
 }
 
-const season = (date) => ([3, 4, 5, 6, 7, 8].includes(date.getMonth()) ? 'Yala' : 'Maha');
+// Department of Agriculture seasons: Yala April–August, Maha September–March
+const season = (date) => (date.getMonth() >= 3 && date.getMonth() <= 7 ? 'yala' : 'maha');
 
 // Level, storage and the last week of readings for one reservoir, all from the API.
 function TankCard({ tanks, reservoirId, readings, onPick, lang, t }) {
@@ -276,7 +277,7 @@ export default function Home() {
           <h1 className="h1 xl">{t('farmOverview')}</h1>
         </div>
         <button type="button" className={`chip-white btn ${readings.loading || tanks.loading ? 'spinning' : ''}`} onClick={refresh} aria-label="Refresh readings">
-          <Icon name="refresh" size={14} stroke={2.4} /> {fmtDay(readings.data?.latest?.date || today.toISOString().slice(0, 10), lang, { day: 'numeric', month: 'short' })} · {season(today)}
+          <Icon name="refresh" size={14} stroke={2.4} /> {fmtDay(readings.data?.latest?.date || today.toISOString().slice(0, 10), lang, { day: 'numeric', month: 'short' })} · {t(season(today))}
         </button>
       </div>
 

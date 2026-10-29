@@ -127,6 +127,9 @@ const dict = {
     pickPlace: 'Say where the problem is', photoFailed: 'Could not read that photo. Try another one.',
     notePlaceholder: 'e.g. Mud and weeds blocking the channel about 50 m after gate 7',
     loadingReports: 'Loading your reports…', noReports: 'No reports yet', unit: 'Unit',
+    obFloodCard: 'River at alert level near your farm', obFloodSub: 'Warnings also come by SMS',
+    obWaterSub: 'Dates for your canal from the water issue schedule', obReportSub: 'Follow its progress under My reports',
+    yala: 'Yala', maha: 'Maha',
   },
   si: {
     appName: 'යල-මහ', farmerPortal: 'ගොවි ද්වාරය',
@@ -232,6 +235,9 @@ const dict = {
     pickPlace: 'ගැටලුව ඇති ස්ථානය කියන්න', photoFailed: 'ඡායාරූපය කියවිය නොහැකි විය. වෙනත් එකක් උත්සාහ කරන්න.',
     notePlaceholder: 'උදා: 7 වන දොරටුවෙන් මීටර් 50කට පසු ඇළ මඩ සහ වල් පැළෑටිවලින් අවහිර වී ඇත',
     loadingReports: 'ඔබේ වාර්තා පූරණය වෙමින්…', noReports: 'තවම වාර්තා නැත', unit: 'ඒකකය',
+    obFloodCard: 'ඔබේ ගොවිපළ අසල ගංගාව අනතුරු මට්ටමේ', obFloodSub: 'අනතුරු ඇඟවීම් SMS මගින්ද එයි',
+    obWaterSub: 'ජල නිකුතු කාලසටහනෙන් ඔබේ ඇළට ජලය ලැබෙන දින', obReportSub: 'ප්‍රගතිය "මගේ වාර්තා" යටතේ බලන්න',
+    yala: 'යල', maha: 'මහ',
   },
   ta: {
     appName: 'யால-மகா', farmerPortal: 'விவசாயி தளம்',
@@ -337,6 +343,9 @@ const dict = {
     pickPlace: 'பிரச்சினை உள்ள இடத்தைக் கூறுங்கள்', photoFailed: 'புகைப்படத்தைப் படிக்க முடியவில்லை. வேறொன்றை முயலுங்கள்.',
     notePlaceholder: 'உ-ம்: 7ஆம் கதவிலிருந்து 50 மீ தூரத்தில் கால்வாய் சேறு மற்றும் களைகளால் அடைபட்டுள்ளது',
     loadingReports: 'உங்கள் அறிக்கைகள் ஏற்றப்படுகின்றன…', noReports: 'இன்னும் அறிக்கைகள் இல்லை', unit: 'அலகு',
+    obFloodCard: 'உங்கள் பண்ணைக்கு அருகே ஆறு எச்சரிக்கை மட்டத்தில்', obFloodSub: 'எச்சரிக்கைகள் SMS மூலமும் வரும்',
+    obWaterSub: 'நீர் திறப்பு அட்டவணையிலிருந்து உங்கள் கால்வாய்க்கான தேதிகள்', obReportSub: 'முன்னேற்றத்தை "என் அறிக்கைகள்" பகுதியில் பாருங்கள்',
+    yala: 'யால', maha: 'மகா',
   },
 };
 

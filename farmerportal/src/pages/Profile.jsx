@@ -3,13 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { formatPhone, useApp } from '../state/AppContext.jsx';
 import { Card, LangSwitch } from '../components/UI.jsx';
 import Icon from '../components/Icon.jsx';
-import Sheet from '../components/Sheet.jsx';
 import { updateProfile } from '../api/auth.js';
 
 export default function Profile() {
-  const { t, user, farm, update, logout, showToast, resetAll } = useApp();
+  const { t, user, farm, update, logout, showToast } = useApp();
   const navigate = useNavigate();
-  const [helpOpen, setHelpOpen] = useState(false);
   const [savingSms, setSavingSms] = useState(false);
   const smsEnabled = farm?.smsEnabled !== false;
 
@@ -58,7 +56,7 @@ export default function Profile() {
         </label>
         <Link to="/alerts" className="list-row"><Icon name="bell" size={20} /><span className="grow f15 fw600">{t('alerts')}</span><Icon name="chevron" size={18} /></Link>
         <Link to="/fields" className="list-row"><Icon name="map" size={20} /><span className="grow f15 fw600">{t('myFields')}</span><Icon name="chevron" size={18} /></Link>
-        <button type="button" className="list-row" onClick={() => setHelpOpen(true)}><Icon name="help" size={20} /><span className="grow f15 fw600" style={{ textAlign: 'left' }}>{t('help')}</span><Icon name="chevron" size={18} /></button>
+        {/* Help & officer contacts: add a row here once the real contacts for the area are known */}
       </Card>
 
       <button type="button" className="pill-btn outline big danger" onClick={() => { logout(); navigate('/login', { replace: true }); }}>
@@ -66,20 +64,8 @@ export default function Profile() {
       </button>
 
       <div className="center f12 muted lh">
-        {t('appName')} · {t('version')} 1.0.0<br />
-        <button type="button" className="link-btn f12" onClick={() => { resetAll(); navigate('/', { replace: true }); }}>Reset demo data</button>
-        {' · '}
-        <Link to="/error" className="f12 ink">Preview error screen</Link>
+        {t('appName')} · {t('version')} 1.0.0
       </div>
-
-      <Sheet open={helpOpen} onClose={() => setHelpOpen(false)} title={t('help')}>
-        <div className="col gap8">
-          <div className="option-row static"><Icon name="user" size={18} /><span className="grow">Agrarian Development Officer · [OFFICER NAME]</span></div>
-          <div className="option-row static"><Icon name="sms" size={18} /><span className="grow">Irrigation maintenance desk · [PHONE]</span></div>
-          <div className="option-row static"><Icon name="pin" size={18} /><span className="grow">Agrarian Service Centre · [ADDRESS]</span></div>
-        </div>
-        <div className="f13 muted lh">Replace these with the real contacts for your area before launch.</div>
-      </Sheet>
     </div>
   );
 }
